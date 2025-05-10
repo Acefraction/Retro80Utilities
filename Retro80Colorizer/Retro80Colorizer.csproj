@@ -78,6 +78,7 @@
     <None Include="Resources\Samples\Docs\Semantic_Color_Reduction_Summary_EN.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="SEMANTIC_SUMMARY.md" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
