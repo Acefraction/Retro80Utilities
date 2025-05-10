@@ -75,6 +75,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <None Include="README.md" />
+    <None Include="Resources\Palettes\PalleteFilesDefinition.json" />
     <None Include="Resources\Samples\Docs\Semantic_Color_Reduction_Summary_EN.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
