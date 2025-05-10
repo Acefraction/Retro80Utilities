@@ -124,6 +124,7 @@
     <Content Include="Resources\Samples\Docs\Semantic Dither Palette Generation Pipeline_JP.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Resources\Samples\Palettes\color_dither_color_matrix_4x3.png" />
     <Content Include="Resources\Samples\Palettes\color_dither_seed_definition_background_16color.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
