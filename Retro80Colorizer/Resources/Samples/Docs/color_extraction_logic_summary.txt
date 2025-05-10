@@ -1,0 +1,127 @@
+# -*- coding: utf-8 -*-
+"""
+This script analyzes and visualizes the color characteristics of anime-style illustrations provided by the user, based on their distribution in the Lab color space and the histogram of lightness (L*).  
+It then extracts representative colors for each thematic background as a palette suitable for dithering.
+
+Prerequisites:
+- The color data in Lab space is visualized as:
+  - a* vs b* scatter plot (attached as `lab_ab_scatter_en.png`)
+  - L* lightness histogram (`lab_l_distribution.png`)
+- This script extracts representative colors from Lab space based on HSL hue ranges and outputs them as RGB-formatted palettes for dithering purposes.
+
+Mathematical Summary:
+- Starting point of color data: 3D Lab color space grid
+- Hue-based filtering: RGB pixels are filtered by HSL hue range
+- Representative color extraction: KMeans clustering in Lab space (with adaptive cluster count)
+- Cluster count logic: Dynamically controlled based on median Lab distance (8, 12, or 16 clusters)
+- Sorting rule: Colors sorted by HSL lightness, then RGB values
+
+[JP]
+このスクリプトは、ユーザーが提供したアニメ系イラストにおける色の特徴を、
+Lab色空間における散布分布と、明度ヒストグラムに基づいて分析・可視化し、
+背景テーマごとの代表色（ディザリング向けパレット）を抽出するものです。
+
+前提条件：
+- Lab空間内の色情報は、a*b*散布図（添付図 lab_ab_scatter_en.png）と
+  明度L*ヒストグラム（lab_l_distribution.png）として可視化されている。
+- 本スクリプトでは、色相（Hue）範囲に基づき、Lab空間から代表色を抽出し、
+  RGB形式でディザパレットとして出力します。
+
+数学的概要：
+-色データの出発点：Lab色空間の三次元グリッド（Lab）*
+-Hueによる抽出：HSLのHue範囲でRGBフィルタ
+-代表色の抽出法：Lab空間でKMeansクラスタリング（動的クラスタ数）
+-クラスタ数決定：Lab距離の中央値による段階制御（8,12,16）
+-並び順：HSLの明度 + RGB順でソート
+
+"""
+
+import numpy as np
+from sklearn.cluster import KMeans
+from skimage import color
+import colorsys
+
+# 背景テーマごとのHue範囲（度単位）
+background_image_color_to_hue_range = {
+    "Urban": (180, 240),
+    "Downtown": (20, 70),
+    "Futuristic": (180, 230),
+    "Ruined_City": (15, 50),
+    "Countryside": (70, 160),
+    "Mountain_Shrine": (0, 40),
+    "Seaside_Sunset": (180, 300),
+    "Cherry_Road": (320, 20),  # 360度またぎに対応
+    "School": (25, 55),
+    "Back_Alley": (20, 60),
+    "Station_Plaza": (190, 250),
+    "Dreamscape": (240, 320),
+    "Otherworld_Temple": (30, 70)
+}
+
+# Lab空間内の代表点サンプルを生成（仮想ヒストグラムに基づく範囲）
+L_vals = np.linspace(20, 95, 20)
+a_vals = np.linspace(-40, 40, 20)
+b_vals = np.linspace(-40, 40, 20)
+L_grid, a_grid, b_grid = np.meshgrid(L_vals, a_vals, b_vals, indexing='ij')
+# Lab空間の三次元グリッドを1次元化して、全色情報をリスト状に並べます
+Lab_samples = np.stack([L_grid.ravel(), a_grid.ravel(), b_grid.ravel()], axis=1)
+RGB_samples = color.lab2rgb(Lab_samples.reshape(-1, 1, 3)).reshape(-1, 3)
+# sRGBガマット内に収まる色のみを有効と判定しています。範囲外のLab色は除外されます。
+valid_idx = np.all((RGB_samples >= 0) & (RGB_samples <= 1), axis=1)
+Lab_valid = Lab_samples[valid_idx]
+RGB_valid = RGB_samples[valid_idx]
+
+# RGB値をHSLに変換し、指定された色相範囲内にあるかを判定する関数です。
+# 範囲が360度をまたぐ（例：320〜20度）場合にも対応しています。
+def is_hue_in_range(rgb, hue_range):
+    h, _, _ = colorsys.rgb_to_hls(*rgb)
+    h_deg = h * 360
+    hmin, hmax = hue_range
+    return hmin <= h_deg <= hmax if hmin <= hmax else h_deg >= hmin or h_deg <= hmax
+
+# 出力：背景テーマ → 代表RGB色リスト（明度L順→RGB順）
+background_image_color_to_dither_palette_Sorted_by_L = {}
+
+for theme, hue_range in background_image_color_to_hue_range.items():
+    filtered_lab = []
+    for lab, rgb in zip(Lab_valid, RGB_valid):
+        if is_hue_in_range(rgb, hue_range):
+            filtered_lab.append(lab)
+
+    if len(filtered_lab) < 10:
+        continue
+
+    filtered_lab = np.array(filtered_lab)
+    from scipy.spatial.distance import pdist
+    dists = pdist(filtered_lab)
+    dist_median = np.median(dists)
+
+    # Lab空間における色分布の広がり（標準偏差の平均）によって、
+    # 抽出する代表色の数を動的に調整します。
+    # 色が密集していれば8色、広く散っていれば最大16色抽出します。
+    # 距離ベースの代表色数判定
+    # Lab空間上の距離の中央値が大きいほど、色域が広く多色になる傾向があるため
+    if dist_median < 10:
+        n_clusters = 8
+    elif dist_median < 18:
+        n_clusters = 12
+    else:
+        n_clusters = 16
+
+    kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init=10)
+    kmeans.fit(filtered_lab)
+    cluster_lab = kmeans.cluster_centers_
+    cluster_rgb = color.lab2rgb(cluster_lab.reshape(-1, 1, 3)).reshape(-1, 3)
+
+    def rgb_to_lightness(rgb):
+        return max(rgb) + min(rgb)  # HSLのLに近似
+
+    # 代表色をHSLの明度順に並べて、視覚的に自然なグラデーションを作ります。
+    sorted_by_L = sorted(cluster_rgb, key=rgb_to_lightness)
+    sorted_by_RGB = sorted(sorted_by_L, key=lambda x: (x[0], x[1], x[2]))
+    background_image_color_to_dither_palette_Sorted_by_L[theme] = [
+        [round(float(c), 2) for c in rgb] for rgb in sorted_by_RGB
+    ]
+
+# この辞書 background_image_color_to_dither_palette_Sorted_by_L を使えば、
+# 各テーマに対応する代表色が得られます（RGB値、0〜1スケール）

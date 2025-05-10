@@ -79,22 +79,27 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Palettes\Pallete_BackGrounds.png" />
-    <Content Include="Palettes\Pallete_Characters.png" />
-    <Content Include="Palettes\Pallete_Templete.png">
+    <Content Include="Resources\Palettes\Pallete_BackGrounds.png" />
+    <Content Include="Resources\Palettes\Pallete_Characters.png" />
+    <Content Include="Resources\Palettes\Pallete_Templete.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Palettes\ReadMe.txt">
+    <Content Include="Resources\Palettes\ReadMe.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Palettes\ReadMe_Jp.txt">
+    <Content Include="Resources\Palettes\ReadMe_Jp.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Resources\Samples\color_distribution_samples\color_histogram_description.txt" />
+    <Content Include="Resources\Samples\color_distribution_samples\lab_ab_scatter_en.png" />
+    <Content Include="Resources\Samples\color_distribution_samples\lab_l_distribution.png" />
+    <Content Include="Resources\Samples\Docs\color_dither_seed_definition_background.txt" />
+    <Content Include="Resources\Samples\Docs\color_dither_seed_definition_characters.txt" />
+    <Content Include="Resources\Samples\Docs\color_extraction_logic_summary.txt" />
+    <Content Include="Resources\Samples\Palettes\color_dither_seed_definition_background_16color.png" />
+    <Content Include="Resources\Samples\Palettes\color_dither_seed_definition_background_8color.png" />
+    <Content Include="Resources\Samples\Palettes\color_dither_seed_definition_characters.png" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Resources\Samples\color_distribution_samples\" />
-    <Folder Include="Resources\Samples\Docs\" />
-    <Folder Include="Resources\Samples\Palettes\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
