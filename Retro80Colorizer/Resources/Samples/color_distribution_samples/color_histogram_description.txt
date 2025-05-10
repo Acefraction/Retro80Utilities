@@ -1,0 +1,18 @@
+This image is an a*–b* scatter plot that visualizes the color information of the user's anime-style illustration in the Lab color space.  
+The X-axis represents a* (green ↔ red), and the Y-axis represents b* (blue ↔ yellow).  
+The distribution of lightness (L*) is shown separately in the accompanying histogram (see Attachment 2).
+
+Attachments:
+- lab_ab_scatter_en.png: Visualization of hue and chroma (colorfulness) distribution  
+- lab_l_distribution.png: Frequency distribution of lightness (L*)  
+
+[JP]
+
+この画像は、あるユーザー（ツール作者）のアニメ系イラストの色情報をLab色空間でプロットした a*b*散布図です。
+X軸は a*（緑↔赤）、Y軸は b*（青↔黄）を示しています。
+明度L*の分布については別途ヒストグラムで示してあります（添付図2）。
+
+添付ファイル：
+- lab_ab_scatter_en.png：色相・彩度傾向の可視化
+- lab_l_distribution.png：明度（L*）の頻度分布
+

@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // アセンブリに関する一般的な情報は、次の方法で制御されます
 // 制御されます。アセンブリに関連付けられている情報を変更するには、
 // これらの属性値を変更します。
-[assembly: AssemblyTitle("Retro80Colorizer")]
+[assembly: AssemblyTitle("Retro80Utilities")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("HP")]
-[assembly: AssemblyProduct("Retro80Colorizer")]
+[assembly: AssemblyProduct("Retro80Utilities")]
 [assembly: AssemblyCopyright("Copyright © HP 2025")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // このプロジェクトが COM に公開される場合、次の GUID が typelib の ID になります
-[assembly: Guid("0c15705c-40d2-4c0e-99dd-586277aef70d")]
+[assembly: Guid("af8b509c-23ec-4841-98b8-7690f131a335")]
 
 // アセンブリのバージョン情報は、以下の 4 つの値で構成されています:
 //

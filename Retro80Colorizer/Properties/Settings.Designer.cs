@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Retro80Colorizer.Properties
+namespace Retro80Utilities.Properties
 {
 
 

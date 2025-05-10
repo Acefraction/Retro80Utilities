@@ -4,9 +4,9 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{0C15705C-40D2-4C0E-99DD-586277AEF70D}</ProjectGuid>
+    <ProjectGuid>{AF8B509C-23EC-4841-98B8-7690F131A335}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>Retro80Colorizer</RootNamespace>
+    <RootNamespace>Retro80Utilities</RootNamespace>
     <AssemblyName>Retro80Colorizer</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -46,12 +46,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Form1.cs">
+    <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Form1.Designer.cs">
-      <DependentUpon>Form1.cs</DependentUpon>
+    <Compile Include="MainForm.Designer.cs">
+      <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Palette\IO\PaletteDefinition.cs" />
+    <Compile Include="Palette\LabColor.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
@@ -75,6 +77,24 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Palettes\Pallete_BackGrounds.png" />
+    <Content Include="Palettes\Pallete_Characters.png" />
+    <Content Include="Palettes\Pallete_Templete.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Palettes\ReadMe.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Palettes\ReadMe_Jp.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Resources\Samples\color_distribution_samples\" />
+    <Folder Include="Resources\Samples\Docs\" />
+    <Folder Include="Resources\Samples\Palettes\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

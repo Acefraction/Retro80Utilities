@@ -1,6 +1,6 @@
-﻿namespace Retro80Colorizer
+﻿namespace Retro80Utilities
 {
-    partial class Form1
+    partial class MainForm
     {
         /// <summary>
         /// 必要なデザイナー変数です。
