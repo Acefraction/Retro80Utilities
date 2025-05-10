@@ -1,0 +1,46 @@
+﻿## Semantic Dither Palette Generation Pipeline
+
+### ▶ Purpose
+
+To mathematically generate a visually natural 16-color representative palette from subjective keywords such as "space" or "spring sunset."
+
+---
+
+### ▶ Process Overview
+
+1. **Image Processing**: Generate Lab color space histograms from user-created illustrations (multiple images required).
+2. **Keyword Recognition**: User inputs a term such as "space."
+3. **Hue Range Definition**: Define the corresponding HSL hue range for the word (e.g., "space" → 220°–300°).
+4. **Lab Data Filtering**: Extract color points that match the hue range.
+5. **KMeans Clustering**: Analyze the remaining color points in Lab space and group into 16 representative colors.
+6. **Convert to RGB/Palette Format**: Output results as HEX codes or sorted by lightness.
+
+---
+
+### ▶ Implementation Notes & Terminology
+
+| Step             | Description                              |
+| ---------------- | ---------------------------------------- |
+| Image Conversion | RGB → Lab (L\*, a\*, b\*)                |
+| Hue Calculation  | Lab → RGB → HSL to obtain H value        |
+| Hue Matching     | Filter only where 220° ≤ H ≤ 300°        |
+| KMeans           | sklearn.cluster.KMeans(n=16)             |
+| Output Format    | HEX color codes, RGB palette, Lab values |
+
+---
+
+### ▶ Use Cases
+
+* High-color dithering palette
+* Scene-based preset generation
+* Character-specific color tuning
+* Color perception diagnostics tool
+
+---
+
+### ▶ Notes
+
+* Input is "subjective language," output is "mathematically beautiful 16 colors."
+* ab distribution = reflects creator's personality
+* L\* distribution = represents atmosphere/lightness
+* Language × Color × Statistical Processing = the best "smart algorithm"
