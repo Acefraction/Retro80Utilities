@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using Retro80Utilities.Palette;
 
 /// <summary>
 /// LabColor 構造体は、CIELAB（Lab）色空間での色を表現します。
@@ -111,4 +112,20 @@ public struct LabColor
     // 範囲を0〜255にクランプしてbyteへ
     private static int ClampToByte(double val) =>
         (int)Math.Max(0, Math.Min(255, Math.Round(val * 255)));
+
+    /// <summary>
+    /// LCh表色系からLab表色系に変換します。
+    /// C（彩度）と H（色相角度）を a*, b* に変換するだけです。
+    /// </summary>
+    /// <param name="lch">LChColor形式の色</param>
+    /// <returns>LabColor形式の色</returns>
+    public static LabColor FromLCh(LChColor lch)
+    {
+        double hRad = lch.H * Math.PI / 180.0;
+        double a = lch.C * Math.Cos(hRad);
+        double b = lch.C * Math.Sin(hRad);
+        return new LabColor(lch.L, a, b);
+    }
+
+
 }

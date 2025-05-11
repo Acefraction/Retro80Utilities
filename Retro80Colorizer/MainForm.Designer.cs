@@ -87,7 +87,7 @@
             this.txtQuantizeDistance.Name = "txtQuantizeDistance";
             this.txtQuantizeDistance.Size = new System.Drawing.Size(100, 19);
             this.txtQuantizeDistance.TabIndex = 4;
-            this.txtQuantizeDistance.Text = "8";
+            this.txtQuantizeDistance.Text = "6";
             // 
             // label1
             // 
@@ -109,7 +109,7 @@
             // 
             // txtQuantizeColorSize
             // 
-            this.txtQuantizeColorSize.Location = new System.Drawing.Point(507, 122);
+            this.txtQuantizeColorSize.Location = new System.Drawing.Point(534, 126);
             this.txtQuantizeColorSize.Name = "txtQuantizeColorSize";
             this.txtQuantizeColorSize.Size = new System.Drawing.Size(100, 19);
             this.txtQuantizeColorSize.TabIndex = 7;
@@ -129,7 +129,7 @@
             this.txtClusterDistance.Name = "txtClusterDistance";
             this.txtClusterDistance.Size = new System.Drawing.Size(100, 19);
             this.txtClusterDistance.TabIndex = 9;
-            this.txtClusterDistance.Text = "18";
+            this.txtClusterDistance.Text = "10";
             // 
             // label4
             // 
@@ -142,7 +142,7 @@
             // 
             // txtClusterSize
             // 
-            this.txtClusterSize.Location = new System.Drawing.Point(507, 95);
+            this.txtClusterSize.Location = new System.Drawing.Point(534, 98);
             this.txtClusterSize.Name = "txtClusterSize";
             this.txtClusterSize.Size = new System.Drawing.Size(100, 19);
             this.txtClusterSize.TabIndex = 11;
@@ -152,9 +152,9 @@
             this.label5.AutoSize = true;
             this.label5.Location = new System.Drawing.Point(424, 75);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(56, 12);
+            this.label5.Size = new System.Drawing.Size(101, 12);
             this.label5.TabIndex = 12;
-            this.label5.Text = "ディザ色数";
+            this.label5.Text = "クラスタディザ色上限";
             // 
             // label6
             // 
@@ -171,15 +171,15 @@
             this.txtMinColorDistanceInPalette.Name = "txtMinColorDistanceInPalette";
             this.txtMinColorDistanceInPalette.Size = new System.Drawing.Size(100, 19);
             this.txtMinColorDistanceInPalette.TabIndex = 14;
-            this.txtMinColorDistanceInPalette.Text = "10.0";
+            this.txtMinColorDistanceInPalette.Text = "2";
             // 
             // txtDitherPaletteSize
             // 
-            this.txtDitherPaletteSize.Location = new System.Drawing.Point(507, 70);
+            this.txtDitherPaletteSize.Location = new System.Drawing.Point(534, 68);
             this.txtDitherPaletteSize.Name = "txtDitherPaletteSize";
             this.txtDitherPaletteSize.Size = new System.Drawing.Size(100, 19);
             this.txtDitherPaletteSize.TabIndex = 15;
-            this.txtDitherPaletteSize.Text = "32";
+            this.txtDitherPaletteSize.Text = "16";
             // 
             // MainForm
             // 

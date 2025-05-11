@@ -149,6 +149,7 @@
     <Compile Include="Palette\IO\PalleteLoader.cs" />
     <Compile Include="Palette\IO\PalletJSonReader.cs" />
     <Compile Include="Palette\LabColor.cs" />
+    <Compile Include="Palette\LabColorExtensions.cs" />
     <Compile Include="Palette\LChColor.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

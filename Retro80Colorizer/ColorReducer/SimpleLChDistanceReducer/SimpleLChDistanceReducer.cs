@@ -18,6 +18,14 @@
 //     - 5.0: 明確な差を感じるがグラデーションでつながる範囲（塗りの影・光）
 //     - 10.0+: 完全に別の色として認識される差（パレット化や分類用途に最適）
 //   - PNG画像のピクセルが半透明（alpha < 255）の場合、それらはすべて処理対象から除外されます。
+// @language-version: 7.3
+// @framework: .NET Framework 4.8
+// @target: Windows Forms
+// @dependencies: Newtonsoft.Json, NLog
+// @notes:
+//   - Implements perceptual color clustering using LCh space.
+//   - Exports color labels and dithered upscaled version using 2x2 ordered dithering.
+//   - Based on distance parameters for clustering and assignment.
 
 using System;
 using System.Collections.Generic;
@@ -86,7 +94,6 @@ namespace Retro80Colorizer.ColorReducer.SimpleLChDistanceReducer
                 }
             }
 
-            // Second pass: assign quantized color to output image
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
@@ -128,6 +135,39 @@ namespace Retro80Colorizer.ColorReducer.SimpleLChDistanceReducer
             return Color.FromArgb((int)(r / count), (int)(g / count), (int)(b / count));
         }
 
+        /// <summary>
+        /// クラスタ内の色をLCh空間で平均し、RGBに変換して返す。
+        /// 人間の知覚に近い代表色を求めるため、Lab → LCh変換してから平均化。
+        /// </summary>
+        /// <param name="colors">クラスタ内のSystem.Drawing.Colorリスト</param>
+        /// <returns>RGB空間の代表色</returns>
+        public static Color AverageLChColor(List<Color> colors)
+        {
+            if (colors == null || colors.Count == 0)
+                return Color.Transparent;
+
+            double sumL = 0, sumC = 0, sumH_sin = 0, sumH_cos = 0;
+
+            foreach (var c in colors)
+            {
+                var lch = new LChColor(c);
+                sumL += lch.L;
+                sumC += lch.C;
+
+                // Hue は円環なのでベクトル平均
+                double hRad = lch.H * Math.PI / 180.0;
+                sumH_cos += Math.Cos(hRad);
+                sumH_sin += Math.Sin(hRad);
+            }
+
+            double avgL = sumL / colors.Count;
+            double avgC = sumC / colors.Count;
+            double avgH = Math.Atan2(sumH_sin, sumH_cos) * 180.0 / Math.PI;
+            if (avgH < 0) avgH += 360.0;
+
+            var avgLCh = new LChColor(avgL, avgC, avgH);
+            return avgLCh.ToColor();
+        }
         public static void ExportClusterLabelMapAsImage(int[,] labelMap, List<Color> clusterColors, string outputPath)
         {
             int width = labelMap.GetLength(0);
@@ -149,12 +189,40 @@ namespace Retro80Colorizer.ColorReducer.SimpleLChDistanceReducer
             map.Save(outputPath, ImageFormat.Png);
         }
 
-        public static Bitmap UpscaleWith2x2Dither(int[,] labelMap, List<Color> clusterColors, int maxColors, double diversityDistance)
+        public static Bitmap UpscaleWith2x2Dither(int[,] labelMap, List<Color> clusterColors, int maxColorsPerCluster, double diversityDistance)
         {
             int width = labelMap.GetLength(0);
             int height = labelMap.GetLength(1);
             Bitmap result = new Bitmap(width * 2, height * 2);
             int[,] bayer2x2 = new int[,] { { 0, 2 }, { 3, 1 } };
+
+            Dictionary<int, List<Color>> clusterDitherColors = new Dictionary<int, List<Color>>();
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    int id = labelMap[x, y];
+                    if (id < 0 || id >= clusterColors.Count) continue;
+
+                    if (!clusterDitherColors.ContainsKey(id))
+                        clusterDitherColors[id] = new List<Color>();
+
+                    Color candidate = clusterColors[id];
+                    LChColor candidateLch = LChColor.FromColor(candidate);
+                    bool far = true;
+                    foreach (var existing in clusterDitherColors[id])
+                    {
+                        if (LChColor.WeightedDistance(candidateLch, LChColor.FromColor(existing)) < diversityDistance)
+                        {
+                            far = false;
+                            break;
+                        }
+                    }
+                    if (far) clusterDitherColors[id].Add(candidate);
+                    if (clusterDitherColors[id].Count >= maxColorsPerCluster) continue;
+                }
+            }
 
             for (int y = 0; y < height; y++)
             {
@@ -164,16 +232,19 @@ namespace Retro80Colorizer.ColorReducer.SimpleLChDistanceReducer
                     Color baseColor = (id >= 0 && id < clusterColors.Count) ? clusterColors[id] : Color.Black;
                     Color altColor = baseColor;
 
-                    // 同一クラスタから別の色がある場合に限定して選択
-                    for (int i = 0; i < clusterColors.Count; i++)
+                    if (clusterDitherColors.ContainsKey(id))
                     {
-                        if (i != id)
-                            continue;
-                        Color candidate = clusterColors[i];
-                        if (candidate != baseColor)
+                        LChColor baseLch = LChColor.FromColor(baseColor);
+                        double minDist = double.MaxValue;
+                        foreach (var c in clusterDitherColors[id])
                         {
-                            altColor = candidate;
-                            break;
+                            if (c == baseColor) continue;
+                            double dist = LChColor.WeightedDistance(baseLch, LChColor.FromColor(c));
+                            if (dist < minDist)
+                            {
+                                minDist = dist;
+                                altColor = c;
+                            }
                         }
                     }
 

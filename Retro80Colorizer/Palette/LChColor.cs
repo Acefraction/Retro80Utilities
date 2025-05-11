@@ -92,6 +92,33 @@ namespace Retro80Utilities.Palette
             return FromLab(LabColor.FromRgb(color));
         }
 
+
+        /// <summary>
+        /// このLChColorをRGBカラー（System.Drawing.Color）に変換します。
+        /// LabColorを経由して変換します。
+        /// </summary>
+        /// <returns>RGB形式のColor</returns>
+        public Color ToColor()
+        {
+            return LabColor.FromLCh(this).ToColor();
+        }
+
+        /// <summary>
+        /// System.Drawing.Color から LChColor を生成します。
+        /// RGB → Lab → LCh の順に変換されます。
+        /// </summary>
+        /// <param name="color">RGB形式のColor</param>
+        public LChColor(Color color)
+        {
+            LabColor lab = LabColor.FromRgb(color);
+            L = lab.L;
+            double a = lab.A;
+            double b = lab.B;
+            C = Math.Sqrt(a * a + b * b);
+            H = Math.Atan2(b, a) * 180.0 / Math.PI;
+            if (H < 0) H += 360.0;
+        }
+
         public override string ToString() => $"L:{L:F1}, C:{C:F1}, H:{H:F1}";
     }
 }
