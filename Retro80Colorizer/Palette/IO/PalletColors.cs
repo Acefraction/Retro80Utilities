@@ -1,14 +1,18 @@
 ﻿// @language-version: 7.3
 // @framework: .NET Framework 4.8
 // @target: Windows Forms
-// @dependencies: Newtonsoft.Json
+// @dependencies: Newtonsoft.Json, NLog
 // @color-order: RGB
 // @bitwise-color: RGB-aligned only
 // @constraints:
-/// Do NOT use C# 8.0+ features (e.g., records, switch expressions, pattern matching).
-/// All color operations must use RGB order.
-/// Bitwise color formats must preserve RGB structure unless explicitly required.
-/// Avoid BRG, BGR, or platform-specific layouts unless documented.
+// - Do NOT use C# 8.0+ features (e.g., records, switch expressions, pattern matching).
+// - All color operations must use RGB order.
+// - Bitwise color formats must preserve RGB structure unless explicitly required.
+// - Avoid BRG, BGR, or platform-specific layouts unless documented.
+// - If the processing logic is sufficiently complex, use NLog for debug logging and traceability.
+// - All classes, methods, and important variables should include AI-friendly XML comments
+//   describing their role, input/output behavior, and structural context.
+
 
 using System;
 using System.Collections.Generic;

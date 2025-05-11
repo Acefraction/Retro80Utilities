@@ -5,82 +5,129 @@
 // @color-order: RGB
 // @bitwise-color: RGB-aligned only
 // @constraints:
-/// Do NOT use C# 8.0+ features (e.g., records, switch expressions, pattern matching).
-/// All color operations must use RGB order.
-/// Bitwise color formats must preserve RGB structure unless explicitly required.
-/// Avoid BRG, BGR, or platform-specific layouts unless documented.
+// - Do NOT use C# 8.0+ features (e.g., records, switch expressions, pattern matching).
+// - All color operations must use RGB order.
+// - Bitwise color formats must preserve RGB structure unless explicitly required.
+// - Avoid BRG, BGR, or platform-specific layouts unless documented.
 
 using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
+using System.Windows.Forms;
 
 namespace Retro80Colorizer.Palette.IO
 {
     /// <summary>
-    /// パレットテンプレートの内部表現クラスです。
-    /// 各セルの色情報（32×32）と、縦方向の機能ラベル（最大32行）を管理します。
+    /// This class represents a fixed-size color palette grid (32×32 cells) loaded from a PNG image.
+    /// Each cell is 16×16 pixels, and the central pixel color is used as the representative color.
+    /// Transparency (alpha=0) is treated as "no color" and skipped.
     /// </summary>
     public class PaletteFileDefinition
     {
-        public const int GridSize = 32;
+        // Grid size constants (fixed layout)
+        public const int GRID_HEIGHT = 32;
+        public const int GRID_WIDTH = 32;
+        public const int GRID_CELL_SIZE = 16;
 
         /// <summary>
-        /// 色の2次元配列。[x, y] でアクセス（0〜31）
-        /// 各要素はグリッドセルの中央色です。
+        /// このパレットが読み込まれた元のPNGファイルパス
         /// </summary>
-        public Color[,] Colors { get; private set; }
+        public string Filename { get; private set; }
 
         /// <summary>
-        /// 各Y行（縦方向）に対応する機能ラベル（例："肌：明るめ"など）。
-        /// 未使用行は空文字列として扱います。
+        /// 2D color list: outer list is rows, inner list is non-transparent colors in each row.
+        /// Each color represents the center pixel of a 16×16 cell.
         /// </summary>
-        public string[] RowLabels { get; private set; }
+        public List<List<Color>> Colors { get; private set; }
 
         /// <summary>
-        /// カラーとラベルを指定してパレット定義を構築します。
+        /// Default constructor (does not load anything).
         /// </summary>
-        /// <param name="colors">32×32の色情報</param>
-        /// <param name="rowLabels">最大32個の行ラベル（null可）</param>
-        public PaletteFileDefinition(Color[,] colors, string[] rowLabels)
+        public PaletteFileDefinition() { }
+
+        /// <summary>
+        /// Constructor that loads and parses a PNG file immediately.
+        /// </summary>
+        /// <param name="PNGFilePath">Path to the palette PNG image</param>
+        public PaletteFileDefinition(string PNGFilePath)
         {
-            if (colors == null) throw new ArgumentNullException(nameof(colors));
-            if (colors.GetLength(0) != GridSize || colors.GetLength(1) != GridSize)
-                throw new ArgumentException("カラーグリッドのサイズは32×32である必要があります。");
+            this.Filename = PNGFilePath;
+            this.Colors = ReadFromFile(PNGFilePath);
+        }
 
-            this.Colors = colors;
-
-            // 行ラベルの初期化（足りない分は空文字列）
-            this.RowLabels = new string[GridSize];
-            for (int y = 0; y < GridSize; y++)
+        /// <summary>
+        /// Reads a PNG palette file and extracts the center color of each 16×16 cell in a 32×32 grid.
+        /// Transparency is skipped. Grid size is strictly validated.
+        /// </summary>
+        /// <param name="PNGFilePath">Path to the palette PNG image</param>
+        /// <returns>A 2D list of Color objects per row</returns>
+        public List<List<Color>> ReadFromFile(string PNGFilePath)
+        {
+            if (!File.Exists(PNGFilePath))
             {
-                this.RowLabels[y] = (rowLabels != null && y < rowLabels.Length)
-                    ? rowLabels[y] ?? ""
-                    : "";
+                MessageBox.Show($"ファイルが見つかりません: {PNGFilePath}", "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                throw new FileNotFoundException("Palette image file not found.", PNGFilePath);
             }
+
+            this.Filename = PNGFilePath; // ← ここでも一応保持（単独呼び出し時の保険）
+
+            Bitmap bitmap = new Bitmap(PNGFilePath);
+            int expectedWidth = GRID_WIDTH * GRID_CELL_SIZE;
+            int expectedHeight = GRID_HEIGHT * GRID_CELL_SIZE;
+
+            if (bitmap.Width != expectedWidth || bitmap.Height != expectedHeight)
+            {
+                MessageBox.Show(
+                    $"画像サイズが正しくありません。\n必要サイズ: {expectedWidth}×{expectedHeight}\n実サイズ: {bitmap.Width}×{bitmap.Height}",
+                    "画像サイズエラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                throw new InvalidDataException("Bitmap dimensions do not match expected grid size.");
+            }
+
+            List<List<Color>> result = new List<List<Color>>();
+
+            for (int row = 0; row < GRID_HEIGHT; row++)
+            {
+                List<Color> rowColors = new List<Color>();
+                for (int col = 0; col < GRID_WIDTH; col++)
+                {
+                    // Calculate center of the cell
+                    int centerX = col * GRID_CELL_SIZE + GRID_CELL_SIZE / 2;
+                    int centerY = row * GRID_CELL_SIZE + GRID_CELL_SIZE / 2;
+
+                    Color pixelColor = bitmap.GetPixel(centerX, centerY);
+
+                    // Skip transparent (alpha = 0)
+                    if (pixelColor.A == 0)
+                        continue;
+
+                    rowColors.Add(pixelColor);
+                }
+
+                // Always add the row, even if it's empty
+                result.Add(rowColors);
+            }
+
+            this.Colors = result;
+            return result;
         }
 
         /// <summary>
-        /// 指定した行のカラー一覧（横方向）を取得します。
+        /// 指定した行番号（0ベース）のカラーデータを取得します。
+        /// 存在しない場合はMessageBoxを表示してIndexOutOfRangeExceptionをスローします。
         /// </summary>
-        public Color[] GetRowColors(int rowIndex)
+        /// <param name="rowIndex">行インデックス（0〜31）</param>
+        /// <returns>Colorのリスト（横方向）</returns>
+        public List<Color> GetRow(int rowIndex)
         {
-            if (rowIndex < 0 || rowIndex >= GridSize)
-                throw new ArgumentOutOfRangeException(nameof(rowIndex));
+            if (Colors == null || rowIndex < 0 || rowIndex >= Colors.Count)
+            {
+                MessageBox.Show($"指定された行 {rowIndex} は存在しません。\n現在の行数: {Colors?.Count ?? 0}",
+                                "パレット行エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                throw new IndexOutOfRangeException($"Row index {rowIndex} is out of bounds.");
+            }
 
-            var row = new Color[GridSize];
-            for (int x = 0; x < GridSize; x++)
-                row[x] = Colors[x, rowIndex];
-
-            return row;
-        }
-
-        /// <summary>
-        /// 指定した行のラベルを取得します。
-        /// 空文字列またはnullの場合は未使用行とみなします。
-        /// </summary>
-        public string GetLabel(int rowIndex)
-        {
-            if (rowIndex < 0 || rowIndex >= GridSize) return null;
-            return RowLabels[rowIndex];
+            return Colors[rowIndex];
         }
     }
 }

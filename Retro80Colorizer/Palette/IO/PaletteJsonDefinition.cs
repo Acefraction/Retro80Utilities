@@ -1,12 +1,25 @@
-﻿using System;
+﻿// @language-version: 7.3
+// @framework: .NET Framework 4.8
+// @target: Windows Forms
+// @dependencies: Newtonsoft.Json, NLog
+// @color-order: RGB
+// @bitwise-color: RGB-aligned only
+// @constraints:
+// - Do NOT use C# 8.0+ features (e.g., records, switch expressions, pattern matching).
+// - All color operations must use RGB order.
+// - Bitwise color formats must preserve RGB structure unless explicitly required.
+// - Avoid BRG, BGR, or platform-specific layouts unless documented.
+// - If the processing logic is sufficiently complex, use NLog for debug logging and traceability.
+// - All classes, methods, and important variables should include AI-friendly XML comments
+//   describing their role, input/output behavior, and structural context.
+
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-// Project: Retro80Colorizer
-// Target Language Version: C# 7.3
-// Platform: .NET Framework 4.8
-// Note: Do not use features introduced after C# 7.3 (e.g., records, switch expressions, etc.)
+
 namespace Retro80Utilities.Palette.IO
 {
     public class PaletteJsonDefinition
