@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -78,6 +79,17 @@ namespace Retro80Utilities.Palette
             double dC = c1.C - c2.C;
             double dH = HueDistance(c1.H, c2.H);
             return Math.Sqrt(wL * dL * dL + wC * dC * dC + wH * dH * dH);
+        }
+
+        /// <summary>
+        /// System.Drawing.Color から直接 LChColor を生成します。
+        /// RGB → Lab → LCh の順で変換されます。
+        /// </summary>
+        /// <param name="color">RGB形式のカラー</param>
+        /// <returns>LCh表色系に変換された色</returns>
+        public static LChColor FromColor(Color color)
+        {
+            return FromLab(LabColor.FromRgb(color));
         }
 
         public override string ToString() => $"L:{L:F1}, C:{C:F1}, H:{H:F1}";

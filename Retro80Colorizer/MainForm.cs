@@ -131,29 +131,57 @@ namespace Retro80Utilities
                     string baseDir = Path.GetDirectoryName(inputPath);
                     string baseName = Path.GetFileNameWithoutExtension(inputPath);
 
-                    if (!double.TryParse(txtLCHDistance.Text, out double threshold))
-                    {
-                        MessageBox.Show("LCH距離が数値として認識できません。", "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        return;
-                    }
-
-                    string outputPath = Path.Combine(baseDir, $"{baseName}_LChReduce_{threshold:F1}.png");
-
                     try
                     {
-                        using (Bitmap bmp = new Bitmap(inputPath))
-                        using (Bitmap reduced = SimpleLChDistanceReducer.Reduce(bmp, threshold))
+                        using (Bitmap original = new Bitmap(inputPath))
                         {
-                            reduced.Save(outputPath, System.Drawing.Imaging.ImageFormat.Png);
-                            var colors = SimpleLChDistanceReducer.GetRepresentativeColors(bmp, threshold);
-                            txtLChClusterNumbers.Text = colors.Count.ToString();
-                            MessageBox.Show($"減色処理が完了しました！\n\n{outputPath}");
+                            int reducedWidth = original.Width / 2;
+                            int reducedHeight = original.Height / 2;
+                            Bitmap resized = new Bitmap(reducedWidth, reducedHeight);
+
+                            using (Graphics g = Graphics.FromImage(resized))
+                            {
+                                g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.Bilinear;
+                                g.DrawImage(original, 0, 0, reducedWidth, reducedHeight);
+                            }
+
+                            double clusterDistance = double.Parse(txtClusterDistance.Text);
+                            double quantizeDistance = double.Parse(txtQuantizeDistance.Text);
+                            double diversityDistance = double.Parse(txtMinColorDistanceInPalette.Text);
+                            int ditherPaletteSize = int.Parse(txtDitherPaletteSize.Text);
+
+                            Bitmap reduced;
+                            int[,] labelMap;
+                            List<Color> clusterColors;
+
+                            SimpleLChDistanceReducer.ReduceWithLabels(
+                                resized,
+                                clusterDistance,
+                                quantizeDistance,
+                                out reduced,
+                                out labelMap,
+                                out clusterColors
+                            );
+
+                            string reducedPath = Path.Combine(baseDir, baseName + "_Reduced.png");
+                            reduced.Save(reducedPath);
+                            txtQuantizeColorSize.Text = clusterColors.Count.ToString();
+                            txtClusterSize.Text = clusterColors.Count.ToString();
+
+                            string labelPath = Path.Combine(baseDir, baseName + "_LabelMap.png");
+                            SimpleLChDistanceReducer.ExportClusterLabelMapAsImage(labelMap, clusterColors, labelPath);
+
+                            string ditherPath = Path.Combine(baseDir, baseName + "_Dithered.png");
+                            var dithered = SimpleLChDistanceReducer.UpscaleWith2x2Dither(labelMap, clusterColors, ditherPaletteSize, diversityDistance);
+                            dithered.Save(ditherPath);
+
+                            MessageBox.Show("LCh減色＋ディザ展開が完了しました！", "完了", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         }
                     }
                     catch (Exception ex)
                     {
-                        Logger.Error(ex, "LCh距離による減色処理中にエラーが発生しました。");
-                        MessageBox.Show("減色処理中にエラーが発生しました。\n" + ex.Message, "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        Logger.Error(ex, "処理中にエラーが発生しました。");
+                        MessageBox.Show("処理中にエラーが発生しました。\n" + ex.Message, "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
             };
@@ -343,5 +371,6 @@ namespace Retro80Utilities
                 MessageBox.Show("パレットの読み込みに失敗しました。\n" + ex.Message, "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
     }
 }

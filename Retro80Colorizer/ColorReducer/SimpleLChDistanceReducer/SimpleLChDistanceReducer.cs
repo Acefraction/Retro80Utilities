@@ -22,108 +22,157 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using Retro80Utilities.Palette;
+using System.Linq;
 
 namespace Retro80Colorizer.ColorReducer.SimpleLChDistanceReducer
 {
-    /// <summary>
-    /// LCh空間の距離（WeightedDistance）を使って減色処理を行うサンプル。
-    /// 指定された距離しきい値以下の色は同一クラスタとしてまとめる。
-    /// </summary>
     public static class SimpleLChDistanceReducer
     {
-        /// <summary>
-        /// 入力画像から代表色を抽出し、減色されたBitmapを返す。
-        /// </summary>
-        /// <param name="bmp">入力画像</param>
-        /// <param name="threshold">LCh距離のしきい値（例: 10.0）</param>
-        /// <returns>減色されたBitmap</returns>
-        public static Bitmap Reduce(Bitmap bmp, double threshold)
+        public static void ReduceWithLabels(Bitmap bmp, double clusterDistance, double quantizeDistance,
+            out Bitmap reduced, out int[,] labelMap, out List<Color> clusterColors)
         {
             int width = bmp.Width;
             int height = bmp.Height;
-            var reduced = new Bitmap(width, height);
-
-            var colorMap = new Dictionary<LChColor, Color>();
+            reduced = new Bitmap(width, height);
+            labelMap = new int[width, height];
+            var clusters = new List<Tuple<LChColor, Color>>();
 
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
                 {
                     Color pixel = bmp.GetPixel(x, y);
-                    if (pixel.A < 255) continue;
+                    if (pixel.A < 255) { reduced.SetPixel(x, y, Color.Transparent); labelMap[x, y] = -1; continue; }
 
                     var lab = LabColor.FromRgb(pixel);
                     var lch = LChColor.FromLab(lab);
 
-                    // 近似クラスタを探す
-                    LChColor? nearest = null;
-                    foreach (var cluster in colorMap.Keys)
+                    int matchedIndex = -1;
+                    for (int i = 0; i < clusters.Count; i++)
                     {
-                        if (LChColor.WeightedDistance(lch, cluster) <= threshold)
+                        if (LChColor.WeightedDistance(clusters[i].Item1, lch) <= clusterDistance)
                         {
-                            nearest = cluster;
+                            matchedIndex = i;
                             break;
                         }
                     }
 
-                    // 見つかればそれを使う、なければ新クラスタを登録
-                    if (nearest != null)
+                    if (matchedIndex == -1)
                     {
-                        reduced.SetPixel(x, y, colorMap[nearest.Value]);
+                        clusters.Add(Tuple.Create(lch, pixel));
+                        matchedIndex = clusters.Count - 1;
+                    }
+
+                    labelMap[x, y] = matchedIndex;
+
+                    if (LChColor.WeightedDistance(clusters[matchedIndex].Item1, lch) <= quantizeDistance)
+                    {
+                        reduced.SetPixel(x, y, clusters[matchedIndex].Item2);
                     }
                     else
                     {
-                        colorMap[lch] = pixel;
-                        reduced.SetPixel(x, y, pixel);
+                        reduced.SetPixel(x, y, pixel); // fallback
                     }
                 }
             }
 
-            return reduced;
+            clusterColors = new List<Color>();
+            foreach (var c in clusters)
+                clusterColors.Add(c.Item2);
         }
 
-        /// <summary>
-        /// 画像から代表色を取得（LChクラスタを返す）
-        /// </summary>
-        /// <param name="bmp">入力画像</param>
-        /// <param name="threshold">LCh距離のしきい値（例: 10.0）</param>
-        /// <returns>クラスタ代表色のリスト</returns>
-        public static List<Color> GetRepresentativeColors(Bitmap bmp, double threshold)
+        public static void ExportClusterLabelMapAsImage(int[,] labelMap, List<Color> clusterColors, string outputPath)
         {
-            var colorMap = new List<Tuple<LChColor, Color>>();
+            int width = labelMap.GetLength(0);
+            int height = labelMap.GetLength(1);
+            Bitmap map = new Bitmap(width, height, PixelFormat.Format32bppArgb);
 
-            for (int y = 0; y < bmp.Height; y++)
+            for (int y = 0; y < height; y++)
             {
-                for (int x = 0; x < bmp.Width; x++)
+                for (int x = 0; x < width; x++)
                 {
-                    Color pixel = bmp.GetPixel(x, y);
-                    if (pixel.A < 255) continue;
+                    int idx = labelMap[x, y];
+                    if (idx >= 0 && idx < clusterColors.Count)
+                        map.SetPixel(x, y, clusterColors[idx]);
+                    else
+                        map.SetPixel(x, y, Color.Transparent);
+                }
+            }
 
-                    var lab = LabColor.FromRgb(pixel);
-                    var lch = LChColor.FromLab(lab);
+            map.Save(outputPath, ImageFormat.Png);
+        }
 
-                    bool matched = false;
-                    foreach (var cluster in colorMap)
+        public static Bitmap UpscaleWith2x2Dither(int[,] labelMap, List<Color> clusterColors, int maxColors, double diversityDistance)
+        {
+            int width = labelMap.GetLength(0);
+            int height = labelMap.GetLength(1);
+            Bitmap result = new Bitmap(width * 2, height * 2);
+            int[,] bayer2x2 = new int[,] { { 0, 2 }, { 3, 1 } };
+
+            Dictionary<int, int> clusterCount = new Dictionary<int, int>();
+            for (int y = 0; y < height; y++)
+                for (int x = 0; x < width; x++)
+                {
+                    int id = labelMap[x, y];
+                    if (id >= 0)
+                        clusterCount[id] = clusterCount.ContainsKey(id) ? clusterCount[id] + 1 : 1;
+                }
+
+            List<Color> topColors = new List<Color>();
+            foreach (var pair in clusterCount.OrderByDescending(p => p.Value))
+            {
+                Color candidate = clusterColors[pair.Key];
+                bool far = true;
+                foreach (var existing in topColors)
+                {
+                    if (LChColor.WeightedDistance(LChColor.FromColor(candidate), LChColor.FromColor(existing)) < diversityDistance)
                     {
-                        if (LChColor.WeightedDistance(lch, cluster.Item1) <= threshold)
+                        far = false;
+                        break;
+                    }
+                }
+                if (far) topColors.Add(candidate);
+                if (topColors.Count >= maxColors) break;
+            }
+
+            Random rand = new Random();
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    int id = labelMap[x, y];
+                    Color baseColor = (id >= 0 && id < clusterColors.Count) ? clusterColors[id] : Color.Black;
+                    LChColor baseLch = LChColor.FromColor(baseColor);
+                    Color altColor = baseColor;
+                    double minDistance = double.MaxValue;
+
+                    foreach (var c in topColors)
+                    {
+                        if (c == baseColor) continue;
+
+                        double dist = LChColor.WeightedDistance(baseLch, LChColor.FromColor(c));
+                        if (dist < minDistance)
                         {
-                            matched = true;
-                            break;
+                            minDistance = dist;
+                            altColor = c;
                         }
                     }
 
-                    if (!matched)
+                    for (int dy = 0; dy < 2; dy++)
                     {
-                        colorMap.Add(Tuple.Create(lch, pixel));
+                        for (int dx = 0; dx < 2; dx++)
+                        {
+                            int bx = dx;
+                            int by = dy;
+                            int bayerVal = bayer2x2[by, bx];
+                            Color dithered = (bayerVal < 2) ? baseColor : altColor;
+                            result.SetPixel(x * 2 + dx, y * 2 + dy, dithered);
+                        }
                     }
                 }
-            }
-
-            var result = new List<Color>();
-            foreach (var item in colorMap)
-            {
-                result.Add(item.Item2);
             }
 
             return result;

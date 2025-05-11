@@ -32,15 +32,23 @@
             this.statusStrip = new System.Windows.Forms.StatusStrip();
             this.btnExtractLine = new System.Windows.Forms.Button();
             this.btnTestLChDistanceColorRedude = new System.Windows.Forms.Button();
-            this.txtLCHDistance = new System.Windows.Forms.TextBox();
+            this.txtQuantizeDistance = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
-            this.txtLChClusterNumbers = new System.Windows.Forms.TextBox();
+            this.txtQuantizeColorSize = new System.Windows.Forms.TextBox();
+            this.label3 = new System.Windows.Forms.Label();
+            this.txtClusterDistance = new System.Windows.Forms.TextBox();
+            this.label4 = new System.Windows.Forms.Label();
+            this.txtClusterSize = new System.Windows.Forms.TextBox();
+            this.label5 = new System.Windows.Forms.Label();
+            this.label6 = new System.Windows.Forms.Label();
+            this.txtMinColorDistanceInPalette = new System.Windows.Forms.TextBox();
+            this.txtDitherPaletteSize = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // btnPalleteChoice
             // 
-            this.btnPalleteChoice.Location = new System.Drawing.Point(12, 12);
+            this.btnPalleteChoice.Location = new System.Drawing.Point(12, 146);
             this.btnPalleteChoice.Name = "btnPalleteChoice";
             this.btnPalleteChoice.Size = new System.Drawing.Size(146, 23);
             this.btnPalleteChoice.TabIndex = 0;
@@ -57,7 +65,7 @@
             // 
             // btnExtractLine
             // 
-            this.btnExtractLine.Location = new System.Drawing.Point(12, 41);
+            this.btnExtractLine.Location = new System.Drawing.Point(12, 12);
             this.btnExtractLine.Name = "btnExtractLine";
             this.btnExtractLine.Size = new System.Drawing.Size(146, 23);
             this.btnExtractLine.TabIndex = 2;
@@ -73,48 +81,123 @@
             this.btnTestLChDistanceColorRedude.Text = "LCH空間色圧縮";
             this.btnTestLChDistanceColorRedude.UseVisualStyleBackColor = true;
             // 
-            // txtLCHDistance
+            // txtQuantizeDistance
             // 
-            this.txtLCHDistance.Location = new System.Drawing.Point(221, 70);
-            this.txtLCHDistance.Name = "txtLCHDistance";
-            this.txtLCHDistance.Size = new System.Drawing.Size(100, 19);
-            this.txtLCHDistance.TabIndex = 4;
-            this.txtLCHDistance.Text = "5.0";
+            this.txtQuantizeDistance.Location = new System.Drawing.Point(303, 122);
+            this.txtQuantizeDistance.Name = "txtQuantizeDistance";
+            this.txtQuantizeDistance.Size = new System.Drawing.Size(100, 19);
+            this.txtQuantizeDistance.TabIndex = 4;
+            this.txtQuantizeDistance.Text = "6.0";
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(164, 75);
+            this.label1.Location = new System.Drawing.Point(163, 125);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(51, 12);
+            this.label1.Size = new System.Drawing.Size(87, 12);
             this.label1.TabIndex = 5;
-            this.label1.Text = "LCH距離";
+            this.label1.Text = "量子化LCH距離";
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(327, 73);
+            this.label2.Location = new System.Drawing.Point(424, 125);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(29, 12);
+            this.label2.Size = new System.Drawing.Size(65, 12);
             this.label2.TabIndex = 6;
-            this.label2.Text = "色数";
+            this.label2.Text = "量子化色数";
             // 
-            // txtLChClusterNumbers
+            // txtQuantizeColorSize
             // 
-            this.txtLChClusterNumbers.Location = new System.Drawing.Point(384, 70);
-            this.txtLChClusterNumbers.Name = "txtLChClusterNumbers";
-            this.txtLChClusterNumbers.Size = new System.Drawing.Size(100, 19);
-            this.txtLChClusterNumbers.TabIndex = 7;
+            this.txtQuantizeColorSize.Location = new System.Drawing.Point(507, 122);
+            this.txtQuantizeColorSize.Name = "txtQuantizeColorSize";
+            this.txtQuantizeColorSize.Size = new System.Drawing.Size(100, 19);
+            this.txtQuantizeColorSize.TabIndex = 7;
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(164, 101);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(106, 12);
+            this.label3.TabIndex = 8;
+            this.label3.Text = "クラスター化LCH距離";
+            // 
+            // txtClusterDistance
+            // 
+            this.txtClusterDistance.Location = new System.Drawing.Point(303, 94);
+            this.txtClusterDistance.Name = "txtClusterDistance";
+            this.txtClusterDistance.Size = new System.Drawing.Size(100, 19);
+            this.txtClusterDistance.TabIndex = 9;
+            this.txtClusterDistance.Text = "10.0";
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(424, 101);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(60, 12);
+            this.label4.TabIndex = 10;
+            this.label4.Text = "クラスター数";
+            // 
+            // txtClusterSize
+            // 
+            this.txtClusterSize.Location = new System.Drawing.Point(507, 95);
+            this.txtClusterSize.Name = "txtClusterSize";
+            this.txtClusterSize.Size = new System.Drawing.Size(100, 19);
+            this.txtClusterSize.TabIndex = 11;
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(424, 75);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(56, 12);
+            this.label5.TabIndex = 12;
+            this.label5.Text = "ディザ色数";
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(164, 75);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(105, 12);
+            this.label6.TabIndex = 13;
+            this.label6.Text = "ディザカラーLCH距離";
+            // 
+            // txtMinColorDistanceInPalette
+            // 
+            this.txtMinColorDistanceInPalette.Location = new System.Drawing.Point(303, 68);
+            this.txtMinColorDistanceInPalette.Name = "txtMinColorDistanceInPalette";
+            this.txtMinColorDistanceInPalette.Size = new System.Drawing.Size(100, 19);
+            this.txtMinColorDistanceInPalette.TabIndex = 14;
+            this.txtMinColorDistanceInPalette.Text = "10.0";
+            // 
+            // txtDitherPaletteSize
+            // 
+            this.txtDitherPaletteSize.Location = new System.Drawing.Point(507, 70);
+            this.txtDitherPaletteSize.Name = "txtDitherPaletteSize";
+            this.txtDitherPaletteSize.Size = new System.Drawing.Size(100, 19);
+            this.txtDitherPaletteSize.TabIndex = 15;
+            this.txtDitherPaletteSize.Text = "32";
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1320, 628);
-            this.Controls.Add(this.txtLChClusterNumbers);
+            this.Controls.Add(this.txtDitherPaletteSize);
+            this.Controls.Add(this.txtMinColorDistanceInPalette);
+            this.Controls.Add(this.label6);
+            this.Controls.Add(this.label5);
+            this.Controls.Add(this.txtClusterSize);
+            this.Controls.Add(this.label4);
+            this.Controls.Add(this.txtClusterDistance);
+            this.Controls.Add(this.label3);
+            this.Controls.Add(this.txtQuantizeColorSize);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
-            this.Controls.Add(this.txtLCHDistance);
+            this.Controls.Add(this.txtQuantizeDistance);
             this.Controls.Add(this.btnTestLChDistanceColorRedude);
             this.Controls.Add(this.btnExtractLine);
             this.Controls.Add(this.statusStrip);
@@ -133,10 +216,18 @@
         private System.Windows.Forms.StatusStrip statusStrip;
         private System.Windows.Forms.Button btnExtractLine;
         private System.Windows.Forms.Button btnTestLChDistanceColorRedude;
-        private System.Windows.Forms.TextBox txtLCHDistance;
+        private System.Windows.Forms.TextBox txtQuantizeDistance;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.TextBox txtLChClusterNumbers;
+        private System.Windows.Forms.TextBox txtQuantizeColorSize;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.TextBox txtClusterDistance;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.TextBox txtClusterSize;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.TextBox txtMinColorDistanceInPalette;
+        private System.Windows.Forms.TextBox txtDitherPaletteSize;
     }
 }
 
