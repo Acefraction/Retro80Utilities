@@ -10,6 +10,7 @@
 /// Bitwise color formats must preserve RGB structure unless explicitly required.
 /// Avoid BRG, BGR, or platform-specific layouts unless documented.
 
+using System;
 using System.Drawing;
 
 namespace Retro80Colorizer.Palette.IO
