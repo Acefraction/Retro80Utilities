@@ -11,21 +11,6 @@
 //   - Use NLog for trace-level diagnostics in complex logic sections.
 //   - All public classes, methods, and critical fields should include AI-readable XML comments
 //     describing their purpose, input/output contracts, and design assumptions.
-//
-// @notes:
-//   LCh 距離のしきい値（threshold）の目安:
-//     - 3.0: 非常に類似した色（肌の陰影や髪の影など微差）をまとめるレベル
-//     - 5.0: 明確な差を感じるがグラデーションでつながる範囲（塗りの影・光）
-//     - 10.0+: 完全に別の色として認識される差（パレット化や分類用途に最適）
-//   - PNG画像のピクセルが半透明（alpha < 255）の場合、それらはすべて処理対象から除外されます。
-// @language-version: 7.3
-// @framework: .NET Framework 4.8
-// @target: Windows Forms
-// @dependencies: Newtonsoft.Json, NLog
-// @notes:
-//   - Implements perceptual color clustering using LCh space.
-//   - Exports color labels and dithered upscaled version using 2x2 ordered dithering.
-//   - Based on distance parameters for clustering and assignment.
 
 using System;
 using System.Collections.Generic;
@@ -44,8 +29,9 @@ namespace Retro80Colorizer.ColorReducer.SimpleLChDistanceReducer
             int height = bmp.Height;
             reduced = new Bitmap(width, height);
             labelMap = new int[width, height];
-            var clusters = new List<Tuple<LChColor, Color>>();
-            var clusterMemberColors = new Dictionary<int, List<Color>>();
+
+            List<List<Color>> clusterMembers = new List<List<Color>>();
+            List<LChColor> clusterCenters = new List<LChColor>();
 
             for (int y = 0; y < height; y++)
             {
@@ -54,44 +40,40 @@ namespace Retro80Colorizer.ColorReducer.SimpleLChDistanceReducer
                     Color pixel = bmp.GetPixel(x, y);
                     if (pixel.A < 255) { reduced.SetPixel(x, y, Color.Transparent); labelMap[x, y] = -1; continue; }
 
-                    var lab = LabColor.FromRgb(pixel);
-                    var lch = LChColor.FromLab(lab);
+                    LChColor lch = LChColor.FromLab(LabColor.FromRgb(pixel));
 
-                    int matchedIndex = -1;
-                    for (int i = 0; i < clusters.Count; i++)
+                    int matchIndex = -1;
+                    double minDist = double.MaxValue;
+                    for (int i = 0; i < clusterCenters.Count; i++)
                     {
-                        if (LChColor.WeightedDistance(clusters[i].Item1, lch) <= clusterDistance)
+                        double dist = LChColor.WeightedDistance(clusterCenters[i], lch);
+                        if (dist < clusterDistance && dist < minDist)
                         {
-                            matchedIndex = i;
-                            break;
+                            minDist = dist;
+                            matchIndex = i;
                         }
                     }
 
-                    if (matchedIndex == -1)
+                    if (matchIndex == -1)
                     {
-                        clusters.Add(Tuple.Create(lch, pixel));
-                        matchedIndex = clusters.Count - 1;
+                        clusterCenters.Add(lch);
+                        clusterMembers.Add(new List<Color> { pixel });
+                        labelMap[x, y] = clusterCenters.Count - 1;
                     }
-
-                    labelMap[x, y] = matchedIndex;
-
-                    if (!clusterMemberColors.ContainsKey(matchedIndex))
-                        clusterMemberColors[matchedIndex] = new List<Color>();
-                    clusterMemberColors[matchedIndex].Add(pixel);
+                    else
+                    {
+                        clusterMembers[matchIndex].Add(pixel);
+                        labelMap[x, y] = matchIndex;
+                    }
                 }
             }
 
             clusterColors = new List<Color>();
-            for (int i = 0; i < clusters.Count; i++)
+            for (int i = 0; i < clusterMembers.Count; i++)
             {
-                if (clusterMemberColors.ContainsKey(i))
-                {
-                    clusterColors.Add(AverageColor(clusterMemberColors[i]));
-                }
-                else
-                {
-                    clusterColors.Add(clusters[i].Item2); // fallback
-                }
+                Color avg = AverageLChColor(clusterMembers[i]);
+                clusterColors.Add(avg);
+                clusterCenters[i] = LChColor.FromLab(LabColor.FromRgb(avg));
             }
 
             for (int y = 0; y < height; y++)
@@ -106,55 +88,38 @@ namespace Retro80Colorizer.ColorReducer.SimpleLChDistanceReducer
                     }
 
                     Color pixel = bmp.GetPixel(x, y);
-                    var lab = LabColor.FromRgb(pixel);
-                    var lch = LChColor.FromLab(lab);
-
-                    Color quantizedColor = clusterColors[clusterId];
-                    double dist = LChColor.WeightedDistance(lch, LChColor.FromColor(quantizedColor));
+                    LChColor lch = LChColor.FromLab(LabColor.FromRgb(pixel));
+                    Color quantized = clusterColors[clusterId];
+                    double dist = LChColor.WeightedDistance(lch, LChColor.FromColor(quantized));
 
                     if (dist <= quantizeDistance)
-                        reduced.SetPixel(x, y, quantizedColor);
+                        reduced.SetPixel(x, y, quantized);
                     else
-                        reduced.SetPixel(x, y, pixel); // fallback
+                        reduced.SetPixel(x, y, pixel);
                 }
             }
         }
 
-        private static Color AverageColor(List<Color> colors)
-        {
-            long r = 0, g = 0, b = 0;
-            foreach (var c in colors)
-            {
-                r += c.R;
-                g += c.G;
-                b += c.B;
-            }
-
-            int count = colors.Count;
-            if (count == 0) return Color.Transparent;
-            return Color.FromArgb((int)(r / count), (int)(g / count), (int)(b / count));
-        }
-
         /// <summary>
-        /// クラスタ内の色をLCh空間で平均し、RGBに変換して返す。
-        /// 人間の知覚に近い代表色を求めるため、Lab → LCh変換してから平均化。
+        /// 指定されたRGBカラーリストのLCh空間での平均を計算し、
+        /// 人間の知覚に基づく代表的な色を求めます。
+        /// 色相は円環構造を考慮してベクトル平均し、
+        /// 明度と彩度は単純平均します。
         /// </summary>
-        /// <param name="colors">クラスタ内のSystem.Drawing.Colorリスト</param>
-        /// <returns>RGB空間の代表色</returns>
+        /// <param name="colors">平均化対象の色のリスト（System.Drawing.Color）</param>
+        /// <returns>平均された代表色（RGBカラー）</returns>
         public static Color AverageLChColor(List<Color> colors)
         {
             if (colors == null || colors.Count == 0)
                 return Color.Transparent;
 
             double sumL = 0, sumC = 0, sumH_sin = 0, sumH_cos = 0;
-
             foreach (var c in colors)
             {
                 var lch = new LChColor(c);
                 sumL += lch.L;
                 sumC += lch.C;
 
-                // Hue は円環なのでベクトル平均
                 double hRad = lch.H * Math.PI / 180.0;
                 sumH_cos += Math.Cos(hRad);
                 sumH_sin += Math.Sin(hRad);
@@ -165,9 +130,9 @@ namespace Retro80Colorizer.ColorReducer.SimpleLChDistanceReducer
             double avgH = Math.Atan2(sumH_sin, sumH_cos) * 180.0 / Math.PI;
             if (avgH < 0) avgH += 360.0;
 
-            var avgLCh = new LChColor(avgL, avgC, avgH);
-            return avgLCh.ToColor();
+            return new LChColor(avgL, avgC, avgH).ToColor();
         }
+
         public static void ExportClusterLabelMapAsImage(int[,] labelMap, List<Color> clusterColors, string outputPath)
         {
             int width = labelMap.GetLength(0);
@@ -265,4 +230,4 @@ namespace Retro80Colorizer.ColorReducer.SimpleLChDistanceReducer
             return result;
         }
     }
-}
+}   
