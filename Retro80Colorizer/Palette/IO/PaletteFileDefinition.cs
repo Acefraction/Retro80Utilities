@@ -14,7 +14,7 @@ namespace Retro80Colorizer.Palette.IO
     /// パレットテンプレートの内部表現クラスです。
     /// 各セルの色情報（32×32）と、縦方向の機能ラベル（最大32行）を管理します。
     /// </summary>
-    public class PaletteDefinition
+    public class PaletteFileDefinition
     {
         public const int GridSize = 32;
 
@@ -35,7 +35,7 @@ namespace Retro80Colorizer.Palette.IO
         /// </summary>
         /// <param name="colors">32×32の色情報</param>
         /// <param name="rowLabels">最大32個の行ラベル（null可）</param>
-        public PaletteDefinition(Color[,] colors, string[] rowLabels)
+        public PaletteFileDefinition(Color[,] colors, string[] rowLabels)
         {
             if (colors == null) throw new ArgumentNullException(nameof(colors));
             if (colors.GetLength(0) != GridSize || colors.GetLength(1) != GridSize)

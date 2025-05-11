@@ -52,7 +52,8 @@
     <Compile Include="MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="Palette\IO\PaletteDefinition.cs" />
+    <Compile Include="Palette\IO\PaletteFileDefinition.cs" />
+    <Compile Include="Palette\IO\PaletteJsonDefinition.cs" />
     <Compile Include="Palette\LabColor.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
