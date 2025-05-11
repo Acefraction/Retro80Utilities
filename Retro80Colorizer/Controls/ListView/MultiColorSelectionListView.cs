@@ -55,13 +55,13 @@ namespace Retro80Colorizer.Controls.ListView
             {
                 foreach (var entry in data)
                 {
-                    var item = new ListViewItem(entry.Name);
+                    var item = new ListViewItem(entry.DisplayName);
                     item.SubItems.Add(""); // 色用カラム
                     item.Tag = entry;
                     this.Items.Add(item);
 
                     // フォントで文字列幅を測定
-                    SizeF size = g.MeasureString(entry.Name, this.Font);
+                    SizeF size = g.MeasureString(entry.DisplayName, this.Font);
                     maxTextWidth = Math.Max(maxTextWidth, (int)size.Width);
                 }
             }

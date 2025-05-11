@@ -48,11 +48,31 @@ namespace Retro80Utilities
         protected List<PaletteColors> _palettes { get; private set; }
 
         /// <summary>
+        /// 現在選択されているパレットを保持します。
+        /// </summary>
+        protected List<PaletteColors> _selectedPalettes { get; private set; }
+
+
+        /// <summary>
+        /// ステータスバーを保持します。
+        /// </summary>
+        private ToolStripStatusLabel statusLabel;
+
+        /// <summary>
         /// フォームの初期化。フォームロードイベントと、パレット選択ボタンのクリックイベントを登録します。
         /// </summary>
         public MainForm()
         {
             InitializeComponent();
+
+            // コントロール初期化
+            {
+                statusLabel = new ToolStripStatusLabel();
+
+                statusStrip.Items.Add(statusLabel);
+                this.Controls.Add(statusStrip);
+                statusLabel.Text = "減色ボタンをおして減色できます";
+            }
 
             this.Load += MainForm_Load;
 
@@ -65,17 +85,24 @@ namespace Retro80Utilities
 
                 if (palletesChoiceForm.ShowDialog() == DialogResult.OK)
                 {
-                    var result = palletesChoiceForm.SelectedItems;
+                    _selectedPalettes = palletesChoiceForm.SelectedItems.Select(x => new PaletteColors()
+                    {
+                        category = x.Category,
+                        name = x.Name,
+                        Colors = x.Colors,
+                    } ).ToList();
 
                     // 選択されたパレット名と色一覧をコンソール出力
-                    foreach (var item in result)
+                    foreach (var item in _selectedPalettes)
                     {
-                        Console.WriteLine(item.Name);
+                        Console.WriteLine($"■ {item.name}({item.category})");
                         foreach (var color in item.Colors)
                         {
                             Console.WriteLine($" - {color}");
                         }
                     }
+
+                    statusLabel.Text = $"{_selectedPalettes.Count}個のパレット - {String.Join(",", _selectedPalettes.Select(x => x.name).ToArray())}を選択しました。";
                 }
             };
         }
@@ -94,7 +121,7 @@ namespace Retro80Utilities
                 _palettes = PalleteLoader.Load(jsonPath);
 
                 Logger.Info($"Loaded {_palettes.Count} palette items.");
-                MessageBox.Show($"{_palettes.Count}個のパレットを読み込みました。", "読み込み成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                statusLabel.Text =$"{_palettes.Count}個のパレットを読み込みました。";
             }
             catch (Exception ex)
             {

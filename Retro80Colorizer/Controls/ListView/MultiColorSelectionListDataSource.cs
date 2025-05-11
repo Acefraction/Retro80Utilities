@@ -29,9 +29,19 @@ namespace Retro80Colorizer.Controls.ListView
     public class MultiColorSelectionListDataSource
     {
         /// <summary>
-        /// 表示名（テキストラベル）
+        /// カテゴリー（テキストラベル）
+        /// </summary>
+        public string Category { get; set; }
+
+        /// <summary>
+        /// 領域名（テキストラベル）
         /// </summary>
         public string Name { get; set; }
+
+        /// <summary>
+        /// 表示名（テキストラベル）
+        /// </summary>
+        public string DisplayName { get; set; }
 
         /// <summary>
         /// 表示する色のリスト（最大16色推奨）
@@ -49,9 +59,11 @@ namespace Retro80Colorizer.Controls.ListView
         /// <summary>
         /// コンストラクタ（初期データ付き）
         /// </summary>
-        public MultiColorSelectionListDataSource(string name, IEnumerable<Color> colors)
+        public MultiColorSelectionListDataSource(String category, String name, IEnumerable<Color> colors)
         {
+            Category = category;
             Name = name;
+            DisplayName = $"name({category})";
             Colors = new List<Color>(colors ?? new List<Color>());
         }
     }

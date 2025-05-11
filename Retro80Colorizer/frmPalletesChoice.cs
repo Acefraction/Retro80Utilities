@@ -55,12 +55,12 @@ namespace Retro80Utilities
             {
                 new MultiColorSelectionListDataSource
                 {
-                    Name = "パレットA（キャラクター）",
+                    DisplayName = "パレットA（キャラクター）",
                     Colors = new List<Color> { Color.Red, Color.Green, Color.Blue }
                 },
                 new MultiColorSelectionListDataSource
                 {
-                    Name = "パレットB",
+                    DisplayName = "パレットB",
                     Colors = new List<Color> { Color.Cyan, Color.Magenta, Color.Yellow }
                 }
             });
@@ -82,18 +82,22 @@ namespace Retro80Utilities
                 return;
             }
 
+            /*
             StringBuilder sb = new StringBuilder();
             foreach (var item in checkedItems)
             {
-                sb.AppendLine($"■ {item.Name}");
+                sb.AppendLine($"■ {item.DisplayName}");
                 foreach (var color in item.Colors)
                 {
                     string name = GetColorName(color);
                     sb.AppendLine("　- " + name);
                 }
             }
-
             MessageBox.Show(sb.ToString(), "選択された色一覧");
+            */
+
+            this.DialogResult = DialogResult.OK;
+            this.Close();
         }
 
         private string GetColorName(Color color)
@@ -108,7 +112,9 @@ namespace Retro80Utilities
         {
             var data = palettes.Select(p => new MultiColorSelectionListDataSource
             {
-                Name = $"{p.name}({p.category})",
+                Name = p.name,
+                Category = p.category,
+                DisplayName = $"{p.name}({p.category})",
                 Colors = p.Colors ?? new List<Color>()
             }).ToList();
 
