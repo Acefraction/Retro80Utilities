@@ -139,25 +139,7 @@ namespace Retro80Utilities
                         {
                             if (chkDither.Checked)
                             {
-                                // リサイズ
-                                int reducedWidth = original.Width / 2;
-                                int reducedHeight = original.Height / 2;
-                                Bitmap resized = new Bitmap(reducedWidth, reducedHeight);
-
-                                using (Graphics g = Graphics.FromImage(resized))
-                                {
-                                    g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.Bilinear;
-                                    g.DrawImage(original, 0, 0, reducedWidth, reducedHeight);
-                                }
-
-                                if (resized.Width == 0 || resized.Height == 0)
-                                {
-                                    MessageBox.Show("Resized image has zero dimension.");
-                                    return;
-                                }
-
-                                // ディノイズ
-                                Image<Bgr, byte> image = resized.ToImage<Bgr, byte>();
+                                Image<Bgr, byte> image = original.ToImage<Bgr, byte>();
                                 Image<Bgr, byte> result = new Image<Bgr, byte>(image.Size);
                                 CvInvoke.FastNlMeansDenoisingColored(image, result, 2, 2, 3, 5);
                                 Bitmap bmpDenoised = result.ToBitmap();
@@ -168,21 +150,24 @@ namespace Retro80Utilities
                                 int ditherPaletteSize = int.Parse(txtDitherPaletteSize.Text);
 
                                 Bitmap reduced;
-                                int[,] labelMap;
+                                int[,] highResLabelMap;
                                 List<Color> clusterColors;
+                                List<List<Color>> clusterMembers;
 
-
-                                SimpleLChDistanceReducer.ReduceWithLabels(
+                                // 高解像度でReduce（320x200想定）
+                                SimpleLChDistanceReducer2.ReduceWithLabels(
                                     bmpDenoised,
                                     clusterDistance,
                                     quantizeDistance,
                                     out reduced,
-                                    out labelMap,
-                                    out clusterColors
+                                    out highResLabelMap,
+                                    out clusterColors,
+                                    out clusterMembers // ← これを追加！！
                                 );
 
                                 string reducedPath = Path.Combine(baseDir, baseName + "_Reduced.png");
                                 reduced.Save(reducedPath);
+
                                 HashSet<Color> usedColors = new HashSet<Color>();
                                 for (int y = 0; y < reduced.Height; y++)
                                 {
@@ -195,11 +180,26 @@ namespace Retro80Utilities
                                 txtClusterSize.Text = clusterColors.Count.ToString();
 
                                 string labelPath = Path.Combine(baseDir, baseName + "_LabelMap.png");
-                                SimpleLChDistanceReducer.ExportClusterLabelMapAsImage(labelMap, clusterColors, labelPath);
+                                SimpleLChDistanceReducer2.ExportClusterLabelMapAsImage(highResLabelMap, clusterColors, labelPath);
 
+                                // 低解像度ラベルマップ生成（ニアレスト縮小）
+                                int lowW = highResLabelMap.GetLength(0) / 2;
+                                int lowH = highResLabelMap.GetLength(1) / 2;
+                                int[,] lowResLabelMap = new int[lowW, lowH];
+                                for (int y = 0; y < lowH; y++)
+                                {
+                                    for (int x = 0; x < lowW; x++)
+                                    {
+                                        lowResLabelMap[x, y] = highResLabelMap[x * 2, y * 2];
+                                    }
+                                }
+
+                                // ディザ処理：タイル生成 → 合成
                                 string ditherPath = Path.Combine(baseDir, baseName + "_Dithered.png");
-                                var dithered = SimpleLChDistanceReducer.UpscaleWith2x2Dither(labelMap, clusterColors, ditherPaletteSize, diversityDistance);
+                                var ditherTiles = SimpleLChDistanceReducer2.GenerateClusterDitherTiles(clusterMembers, clusterColors, ditherPaletteSize, diversityDistance);
+                                var dithered = SimpleLChDistanceReducer2.RenderDitheredImage(highResLabelMap, ditherTiles);
                                 dithered.Save(ditherPath);
+
                                 MessageBox.Show("LCh減色＋ディザ展開が完了しました！", "完了", MessageBoxButtons.OK, MessageBoxIcon.Information);
                             }
                             else
@@ -214,14 +214,16 @@ namespace Retro80Utilities
                                 int[,] labelMap;
                                 List<Color> clusterColors;
 
+                                List<List<Color>> clusterMembers;
                                 // 減色処理（解像度変更せず）
-                                SimpleLChDistanceReducer.ReduceWithLabels(
+                                SimpleLChDistanceReducer2.ReduceWithLabels(
                                     bmpDenoised,
                                     clusterDistance,
                                     quantizeDistance,
                                     out reduced,
                                     out labelMap,
-                                    out clusterColors
+                                    out clusterColors,
+                                    out clusterMembers
                                 );
 
                                 // 保存パス
@@ -242,7 +244,7 @@ namespace Retro80Utilities
 
                                 // ラベルマップ出力（クラスタ別に確認可能）
                                 string labelPath = Path.Combine(baseDir, baseName + "_LabelMap_NoDither.png");
-                                SimpleLChDistanceReducer.ExportClusterLabelMapAsImage(labelMap, clusterColors, labelPath);
+                                SimpleLChDistanceReducer2.ExportClusterLabelMapAsImage(labelMap, clusterColors, labelPath);
 
                                 MessageBox.Show("LCh減色が完了しました！", "完了", MessageBoxButtons.OK, MessageBoxIcon.Information);
                             }

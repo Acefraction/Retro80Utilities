@@ -172,7 +172,7 @@
             this.txtMinColorDistanceInPalette.Name = "txtMinColorDistanceInPalette";
             this.txtMinColorDistanceInPalette.Size = new System.Drawing.Size(100, 19);
             this.txtMinColorDistanceInPalette.TabIndex = 14;
-            this.txtMinColorDistanceInPalette.Text = "2";
+            this.txtMinColorDistanceInPalette.Text = "5";
             // 
             // txtDitherPaletteSize
             // 

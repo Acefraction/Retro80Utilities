@@ -20,6 +20,7 @@ using Retro80Utilities.Palette;
 
 namespace Retro80Colorizer.ColorReducer.SimpleLChDistanceReducer
 {
+    [Obsolete("SimpleLChDistanceReducer2に移行")]
     public static class SimpleLChDistanceReducer
     {
         public static void ReduceWithLabels(Bitmap bmp, double clusterDistance, double quantizeDistance,

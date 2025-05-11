@@ -133,6 +133,7 @@
     <Compile Include="ColorReducer\SimpleLabDistanceReducer\ColorReducerProvider.cs" />
     <Compile Include="ColorReducer\SimpleLabDistanceReducer\SimpleLabDistanceReducer.cs" />
     <Compile Include="ColorReducer\SimpleLChDistanceReducer\SimpleLChDistanceReducer.cs" />
+    <Compile Include="ColorReducer\SimpleLChDistanceReducer\SimpleLChDistanceReducer2.cs" />
     <Compile Include="Controls\ListView\MultiColorSelectionListDataSource.cs" />
     <Compile Include="Controls\ListView\MultiColorSelectionListView.cs">
       <SubType>Component</SubType>
