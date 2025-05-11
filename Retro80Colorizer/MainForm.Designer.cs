@@ -129,7 +129,7 @@
             this.txtClusterDistance.Name = "txtClusterDistance";
             this.txtClusterDistance.Size = new System.Drawing.Size(100, 19);
             this.txtClusterDistance.TabIndex = 9;
-            this.txtClusterDistance.Text = "10";
+            this.txtClusterDistance.Text = "14";
             // 
             // label4
             // 

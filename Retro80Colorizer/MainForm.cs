@@ -34,6 +34,8 @@ namespace Retro80Utilities
     using Emgu.CV.CvEnum;
     using Retro80Colorizer.ColorReducer.SimpleLChDistanceReducer;
 
+    using static Emgu.CV.BitmapExtension;
+
     /// <summary>
     /// MainFormはRetro80減色ユーティリティのエントリポイントUIです。
     /// アプリ起動時にパレットJSONと対応するPNGを読み込み、
@@ -145,6 +147,18 @@ namespace Retro80Utilities
                                 g.DrawImage(original, 0, 0, reducedWidth, reducedHeight);
                             }
 
+                            if (resized.Width == 0 || resized.Height == 0)
+                            {
+                                MessageBox.Show("Resized image has zero dimension.");
+                                return;
+                            }
+
+                            // ディノイズ
+                            Image<Bgr, byte> image = resized.ToImage<Bgr, byte>();
+                            Image<Bgr, byte> result = new Image<Bgr, byte>(image.Size);
+                            CvInvoke.FastNlMeansDenoisingColored(image, result, 2, 2, 3, 5);
+                            Bitmap bmpDenoised = result.ToBitmap();
+
                             double clusterDistance = double.Parse(txtClusterDistance.Text);
                             double quantizeDistance = double.Parse(txtQuantizeDistance.Text);
                             double diversityDistance = double.Parse(txtMinColorDistanceInPalette.Text);
@@ -154,8 +168,9 @@ namespace Retro80Utilities
                             int[,] labelMap;
                             List<Color> clusterColors;
 
+
                             SimpleLChDistanceReducer.ReduceWithLabels(
-                                resized,
+                                bmpDenoised,
                                 clusterDistance,
                                 quantizeDistance,
                                 out reduced,
