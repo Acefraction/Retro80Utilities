@@ -29,6 +29,7 @@ namespace Retro80Colorizer.Palette.IO
         public const int GRID_HEIGHT = 32;
         public const int GRID_WIDTH = 32;
         public const int GRID_CELL_SIZE = 16;
+        public const int ACTUAL_DATA_START_ROW = 1;
 
         /// <summary>
         /// このパレットが読み込まれた元のPNGファイルパス
@@ -86,7 +87,7 @@ namespace Retro80Colorizer.Palette.IO
 
             List<List<Color>> result = new List<List<Color>>();
 
-            for (int row = 0; row < GRID_HEIGHT; row++)
+            for (int row = ACTUAL_DATA_START_ROW; row < GRID_HEIGHT; row++)
             {
                 List<Color> rowColors = new List<Color>();
                 for (int col = 0; col < GRID_WIDTH; col++)
