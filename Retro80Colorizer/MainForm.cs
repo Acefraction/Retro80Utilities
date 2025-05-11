@@ -32,6 +32,7 @@ namespace Retro80Utilities
     using Emgu.CV.Structure;
     using Emgu.CV.XImgproc;
     using Emgu.CV.CvEnum;
+    using Retro80Colorizer.ColorReducer.SimpleLChDistanceReducer;
 
     /// <summary>
     /// MainFormはRetro80減色ユーティリティのエントリポイントUIです。
@@ -113,6 +114,48 @@ namespace Retro80Utilities
             this.btnExtractLine.Click += (s, e) =>
             {
                 ExtractLine();
+            };
+
+
+            this.btnTestLChDistanceColorRedude.Click += (s, e) =>
+            {
+                OpenFileDialog dialog = new OpenFileDialog
+                {
+                    Filter = "画像ファイル (*.png)|*.png",
+                    Title = "画像を選択してください"
+                };
+
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    string inputPath = dialog.FileName;
+                    string baseDir = Path.GetDirectoryName(inputPath);
+                    string baseName = Path.GetFileNameWithoutExtension(inputPath);
+
+                    if (!double.TryParse(txtLCHDistance.Text, out double threshold))
+                    {
+                        MessageBox.Show("LCH距離が数値として認識できません。", "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+                    string outputPath = Path.Combine(baseDir, $"{baseName}_LChReduce_{threshold:F1}.png");
+
+                    try
+                    {
+                        using (Bitmap bmp = new Bitmap(inputPath))
+                        using (Bitmap reduced = SimpleLChDistanceReducer.Reduce(bmp, threshold))
+                        {
+                            reduced.Save(outputPath, System.Drawing.Imaging.ImageFormat.Png);
+                            var colors = SimpleLChDistanceReducer.GetRepresentativeColors(bmp, threshold);
+                            txtLChClusterNumbers.Text = colors.Count.ToString();
+                            MessageBox.Show($"減色処理が完了しました！\n\n{outputPath}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Error(ex, "LCh距離による減色処理中にエラーが発生しました。");
+                        MessageBox.Show("減色処理中にエラーが発生しました。\n" + ex.Message, "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
             };
         }
 
