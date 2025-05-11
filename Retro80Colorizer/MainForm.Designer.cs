@@ -87,7 +87,7 @@
             this.txtQuantizeDistance.Name = "txtQuantizeDistance";
             this.txtQuantizeDistance.Size = new System.Drawing.Size(100, 19);
             this.txtQuantizeDistance.TabIndex = 4;
-            this.txtQuantizeDistance.Text = "6.0";
+            this.txtQuantizeDistance.Text = "8";
             // 
             // label1
             // 
@@ -129,7 +129,7 @@
             this.txtClusterDistance.Name = "txtClusterDistance";
             this.txtClusterDistance.Size = new System.Drawing.Size(100, 19);
             this.txtClusterDistance.TabIndex = 9;
-            this.txtClusterDistance.Text = "10.0";
+            this.txtClusterDistance.Text = "18";
             // 
             // label4
             // 

@@ -24,7 +24,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using Retro80Utilities.Palette;
-using System.Linq;
 
 namespace Retro80Colorizer.ColorReducer.SimpleLChDistanceReducer
 {
@@ -38,6 +37,7 @@ namespace Retro80Colorizer.ColorReducer.SimpleLChDistanceReducer
             reduced = new Bitmap(width, height);
             labelMap = new int[width, height];
             var clusters = new List<Tuple<LChColor, Color>>();
+            var clusterMemberColors = new Dictionary<int, List<Color>>();
 
             for (int y = 0; y < height; y++)
             {
@@ -67,20 +67,65 @@ namespace Retro80Colorizer.ColorReducer.SimpleLChDistanceReducer
 
                     labelMap[x, y] = matchedIndex;
 
-                    if (LChColor.WeightedDistance(clusters[matchedIndex].Item1, lch) <= quantizeDistance)
-                    {
-                        reduced.SetPixel(x, y, clusters[matchedIndex].Item2);
-                    }
-                    else
-                    {
-                        reduced.SetPixel(x, y, pixel); // fallback
-                    }
+                    if (!clusterMemberColors.ContainsKey(matchedIndex))
+                        clusterMemberColors[matchedIndex] = new List<Color>();
+                    clusterMemberColors[matchedIndex].Add(pixel);
                 }
             }
 
             clusterColors = new List<Color>();
-            foreach (var c in clusters)
-                clusterColors.Add(c.Item2);
+            for (int i = 0; i < clusters.Count; i++)
+            {
+                if (clusterMemberColors.ContainsKey(i))
+                {
+                    clusterColors.Add(AverageColor(clusterMemberColors[i]));
+                }
+                else
+                {
+                    clusterColors.Add(clusters[i].Item2); // fallback
+                }
+            }
+
+            // Second pass: assign quantized color to output image
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    int clusterId = labelMap[x, y];
+                    if (clusterId < 0 || clusterId >= clusterColors.Count)
+                    {
+                        reduced.SetPixel(x, y, Color.Transparent);
+                        continue;
+                    }
+
+                    Color pixel = bmp.GetPixel(x, y);
+                    var lab = LabColor.FromRgb(pixel);
+                    var lch = LChColor.FromLab(lab);
+
+                    Color quantizedColor = clusterColors[clusterId];
+                    double dist = LChColor.WeightedDistance(lch, LChColor.FromColor(quantizedColor));
+
+                    if (dist <= quantizeDistance)
+                        reduced.SetPixel(x, y, quantizedColor);
+                    else
+                        reduced.SetPixel(x, y, pixel); // fallback
+                }
+            }
+        }
+
+        private static Color AverageColor(List<Color> colors)
+        {
+            long r = 0, g = 0, b = 0;
+            foreach (var c in colors)
+            {
+                r += c.R;
+                g += c.G;
+                b += c.B;
+            }
+
+            int count = colors.Count;
+            if (count == 0) return Color.Transparent;
+            return Color.FromArgb((int)(r / count), (int)(g / count), (int)(b / count));
         }
 
         public static void ExportClusterLabelMapAsImage(int[,] labelMap, List<Color> clusterColors, string outputPath)
@@ -111,53 +156,24 @@ namespace Retro80Colorizer.ColorReducer.SimpleLChDistanceReducer
             Bitmap result = new Bitmap(width * 2, height * 2);
             int[,] bayer2x2 = new int[,] { { 0, 2 }, { 3, 1 } };
 
-            Dictionary<int, int> clusterCount = new Dictionary<int, int>();
-            for (int y = 0; y < height; y++)
-                for (int x = 0; x < width; x++)
-                {
-                    int id = labelMap[x, y];
-                    if (id >= 0)
-                        clusterCount[id] = clusterCount.ContainsKey(id) ? clusterCount[id] + 1 : 1;
-                }
-
-            List<Color> topColors = new List<Color>();
-            foreach (var pair in clusterCount.OrderByDescending(p => p.Value))
-            {
-                Color candidate = clusterColors[pair.Key];
-                bool far = true;
-                foreach (var existing in topColors)
-                {
-                    if (LChColor.WeightedDistance(LChColor.FromColor(candidate), LChColor.FromColor(existing)) < diversityDistance)
-                    {
-                        far = false;
-                        break;
-                    }
-                }
-                if (far) topColors.Add(candidate);
-                if (topColors.Count >= maxColors) break;
-            }
-
-            Random rand = new Random();
-
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
                 {
                     int id = labelMap[x, y];
                     Color baseColor = (id >= 0 && id < clusterColors.Count) ? clusterColors[id] : Color.Black;
-                    LChColor baseLch = LChColor.FromColor(baseColor);
                     Color altColor = baseColor;
-                    double minDistance = double.MaxValue;
 
-                    foreach (var c in topColors)
+                    // 同一クラスタから別の色がある場合に限定して選択
+                    for (int i = 0; i < clusterColors.Count; i++)
                     {
-                        if (c == baseColor) continue;
-
-                        double dist = LChColor.WeightedDistance(baseLch, LChColor.FromColor(c));
-                        if (dist < minDistance)
+                        if (i != id)
+                            continue;
+                        Color candidate = clusterColors[i];
+                        if (candidate != baseColor)
                         {
-                            minDistance = dist;
-                            altColor = c;
+                            altColor = candidate;
+                            break;
                         }
                     }
 

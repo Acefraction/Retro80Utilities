@@ -165,7 +165,15 @@ namespace Retro80Utilities
 
                             string reducedPath = Path.Combine(baseDir, baseName + "_Reduced.png");
                             reduced.Save(reducedPath);
-                            txtQuantizeColorSize.Text = clusterColors.Count.ToString();
+                            HashSet<Color> usedColors = new HashSet<Color>();
+                            for (int y = 0; y < reduced.Height; y++)
+                            {
+                                for (int x = 0; x < reduced.Width; x++)
+                                {
+                                    usedColors.Add(reduced.GetPixel(x, y));
+                                }
+                            }
+                            txtQuantizeColorSize.Text = usedColors.Count.ToString();
                             txtClusterSize.Text = clusterColors.Count.ToString();
 
                             string labelPath = Path.Combine(baseDir, baseName + "_LabelMap.png");
