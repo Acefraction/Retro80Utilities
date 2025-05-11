@@ -44,6 +44,7 @@
             this.label6 = new System.Windows.Forms.Label();
             this.txtMinColorDistanceInPalette = new System.Windows.Forms.TextBox();
             this.txtDitherPaletteSize = new System.Windows.Forms.TextBox();
+            this.chkDither = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // btnPalleteChoice
@@ -181,11 +182,24 @@
             this.txtDitherPaletteSize.TabIndex = 15;
             this.txtDitherPaletteSize.Text = "16";
             // 
+            // chkDither
+            // 
+            this.chkDither.AutoSize = true;
+            this.chkDither.Checked = true;
+            this.chkDither.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkDither.Location = new System.Drawing.Point(95, 94);
+            this.chkDither.Name = "chkDither";
+            this.chkDither.Size = new System.Drawing.Size(63, 16);
+            this.chkDither.TabIndex = 16;
+            this.chkDither.Text = "ディザ化";
+            this.chkDither.UseVisualStyleBackColor = true;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1320, 628);
+            this.Controls.Add(this.chkDither);
             this.Controls.Add(this.txtDitherPaletteSize);
             this.Controls.Add(this.txtMinColorDistanceInPalette);
             this.Controls.Add(this.label6);
@@ -228,6 +242,7 @@
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.TextBox txtMinColorDistanceInPalette;
         private System.Windows.Forms.TextBox txtDitherPaletteSize;
+        private System.Windows.Forms.CheckBox chkDither;
     }
 }
 

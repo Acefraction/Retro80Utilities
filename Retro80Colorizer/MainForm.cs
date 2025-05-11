@@ -137,68 +137,116 @@ namespace Retro80Utilities
                     {
                         using (Bitmap original = new Bitmap(inputPath))
                         {
-                            int reducedWidth = original.Width / 2;
-                            int reducedHeight = original.Height / 2;
-                            Bitmap resized = new Bitmap(reducedWidth, reducedHeight);
-
-                            using (Graphics g = Graphics.FromImage(resized))
+                            if (chkDither.Checked)
                             {
-                                g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.Bilinear;
-                                g.DrawImage(original, 0, 0, reducedWidth, reducedHeight);
-                            }
+                                // リサイズ
+                                int reducedWidth = original.Width / 2;
+                                int reducedHeight = original.Height / 2;
+                                Bitmap resized = new Bitmap(reducedWidth, reducedHeight);
 
-                            if (resized.Width == 0 || resized.Height == 0)
-                            {
-                                MessageBox.Show("Resized image has zero dimension.");
-                                return;
-                            }
-
-                            // ディノイズ
-                            Image<Bgr, byte> image = resized.ToImage<Bgr, byte>();
-                            Image<Bgr, byte> result = new Image<Bgr, byte>(image.Size);
-                            CvInvoke.FastNlMeansDenoisingColored(image, result, 2, 2, 3, 5);
-                            Bitmap bmpDenoised = result.ToBitmap();
-
-                            double clusterDistance = double.Parse(txtClusterDistance.Text);
-                            double quantizeDistance = double.Parse(txtQuantizeDistance.Text);
-                            double diversityDistance = double.Parse(txtMinColorDistanceInPalette.Text);
-                            int ditherPaletteSize = int.Parse(txtDitherPaletteSize.Text);
-
-                            Bitmap reduced;
-                            int[,] labelMap;
-                            List<Color> clusterColors;
-
-
-                            SimpleLChDistanceReducer.ReduceWithLabels(
-                                bmpDenoised,
-                                clusterDistance,
-                                quantizeDistance,
-                                out reduced,
-                                out labelMap,
-                                out clusterColors
-                            );
-
-                            string reducedPath = Path.Combine(baseDir, baseName + "_Reduced.png");
-                            reduced.Save(reducedPath);
-                            HashSet<Color> usedColors = new HashSet<Color>();
-                            for (int y = 0; y < reduced.Height; y++)
-                            {
-                                for (int x = 0; x < reduced.Width; x++)
+                                using (Graphics g = Graphics.FromImage(resized))
                                 {
-                                    usedColors.Add(reduced.GetPixel(x, y));
+                                    g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.Bilinear;
+                                    g.DrawImage(original, 0, 0, reducedWidth, reducedHeight);
                                 }
+
+                                if (resized.Width == 0 || resized.Height == 0)
+                                {
+                                    MessageBox.Show("Resized image has zero dimension.");
+                                    return;
+                                }
+
+                                // ディノイズ
+                                Image<Bgr, byte> image = resized.ToImage<Bgr, byte>();
+                                Image<Bgr, byte> result = new Image<Bgr, byte>(image.Size);
+                                CvInvoke.FastNlMeansDenoisingColored(image, result, 2, 2, 3, 5);
+                                Bitmap bmpDenoised = result.ToBitmap();
+
+                                double clusterDistance = double.Parse(txtClusterDistance.Text);
+                                double quantizeDistance = double.Parse(txtQuantizeDistance.Text);
+                                double diversityDistance = double.Parse(txtMinColorDistanceInPalette.Text);
+                                int ditherPaletteSize = int.Parse(txtDitherPaletteSize.Text);
+
+                                Bitmap reduced;
+                                int[,] labelMap;
+                                List<Color> clusterColors;
+
+
+                                SimpleLChDistanceReducer.ReduceWithLabels(
+                                    bmpDenoised,
+                                    clusterDistance,
+                                    quantizeDistance,
+                                    out reduced,
+                                    out labelMap,
+                                    out clusterColors
+                                );
+
+                                string reducedPath = Path.Combine(baseDir, baseName + "_Reduced.png");
+                                reduced.Save(reducedPath);
+                                HashSet<Color> usedColors = new HashSet<Color>();
+                                for (int y = 0; y < reduced.Height; y++)
+                                {
+                                    for (int x = 0; x < reduced.Width; x++)
+                                    {
+                                        usedColors.Add(reduced.GetPixel(x, y));
+                                    }
+                                }
+                                txtQuantizeColorSize.Text = usedColors.Count.ToString();
+                                txtClusterSize.Text = clusterColors.Count.ToString();
+
+                                string labelPath = Path.Combine(baseDir, baseName + "_LabelMap.png");
+                                SimpleLChDistanceReducer.ExportClusterLabelMapAsImage(labelMap, clusterColors, labelPath);
+
+                                string ditherPath = Path.Combine(baseDir, baseName + "_Dithered.png");
+                                var dithered = SimpleLChDistanceReducer.UpscaleWith2x2Dither(labelMap, clusterColors, ditherPaletteSize, diversityDistance);
+                                dithered.Save(ditherPath);
+                                MessageBox.Show("LCh減色＋ディザ展開が完了しました！", "完了", MessageBoxButtons.OK, MessageBoxIcon.Information);
                             }
-                            txtQuantizeColorSize.Text = usedColors.Count.ToString();
-                            txtClusterSize.Text = clusterColors.Count.ToString();
+                            else
+                            {
+                                // 入力画像はそのまま
+                                Bitmap bmpDenoised = original;
 
-                            string labelPath = Path.Combine(baseDir, baseName + "_LabelMap.png");
-                            SimpleLChDistanceReducer.ExportClusterLabelMapAsImage(labelMap, clusterColors, labelPath);
+                                double clusterDistance = double.Parse(txtClusterDistance.Text);
+                                double quantizeDistance = double.Parse(txtQuantizeDistance.Text);
 
-                            string ditherPath = Path.Combine(baseDir, baseName + "_Dithered.png");
-                            var dithered = SimpleLChDistanceReducer.UpscaleWith2x2Dither(labelMap, clusterColors, ditherPaletteSize, diversityDistance);
-                            dithered.Save(ditherPath);
+                                Bitmap reduced;
+                                int[,] labelMap;
+                                List<Color> clusterColors;
 
-                            MessageBox.Show("LCh減色＋ディザ展開が完了しました！", "完了", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                // 減色処理（解像度変更せず）
+                                SimpleLChDistanceReducer.ReduceWithLabels(
+                                    bmpDenoised,
+                                    clusterDistance,
+                                    quantizeDistance,
+                                    out reduced,
+                                    out labelMap,
+                                    out clusterColors
+                                );
+
+                                // 保存パス
+                                string reducedPath = Path.Combine(baseDir, baseName + "_Reduced_NoDither.png");
+                                reduced.Save(reducedPath);
+
+                                // 色数をカウントしてUIに反映
+                                HashSet<Color> usedColors = new HashSet<Color>();
+                                for (int y = 0; y < reduced.Height; y++)
+                                {
+                                    for (int x = 0; x < reduced.Width; x++)
+                                    {
+                                        usedColors.Add(reduced.GetPixel(x, y));
+                                    }
+                                }
+                                txtQuantizeColorSize.Text = usedColors.Count.ToString();
+                                txtClusterSize.Text = clusterColors.Count.ToString();
+
+                                // ラベルマップ出力（クラスタ別に確認可能）
+                                string labelPath = Path.Combine(baseDir, baseName + "_LabelMap_NoDither.png");
+                                SimpleLChDistanceReducer.ExportClusterLabelMapAsImage(labelMap, clusterColors, labelPath);
+
+                                MessageBox.Show("LCh減色が完了しました！", "完了", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            }
+
                         }
                     }
                     catch (Exception ex)
