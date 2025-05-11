@@ -1,9 +1,9 @@
 ﻿[
   {
     "filename": "Pallete_Characters.png",
-    "type": "キャラクターパレット",
+    "category": "キャラクターパレット",
     "description": "Character-themed palette rows, sorted by color category",
-    "rows": [
+    "names": [
       "赤（情熱・ツンデレ）",
       "ピンク（ロリ・妹）",
       "青（知的・クール）",
@@ -25,9 +25,9 @@
   },
   {
     "filename": "Pallete_BackGrounds.png",
-    "type": "背景パレット",
-    "description": "Environment-themed palette rows, sorted by scene",
-    "rows": [
+    "category": "背景パレット",
+    "name": "Environment-themed palette rows, sorted by scene",
+    "names": [
       "現代の都市街並み（昼（デフォルト））",
       "下町商店街（昼（デフォルト））",
       "近未来都市（昼（デフォルト））",

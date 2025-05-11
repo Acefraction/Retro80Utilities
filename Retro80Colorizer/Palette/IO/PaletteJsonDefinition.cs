@@ -14,8 +14,8 @@ namespace Retro80Utilities.Palette.IO
         public class PaletteJsonDefinition
         {
             public string filename { get; set; }
-            public string type { get; set; }
-            public string description { get; set; }
+            public string category { get; set; }
+            public string name { get; set; }
             public List<string> rows { get; set; }
         }
     }

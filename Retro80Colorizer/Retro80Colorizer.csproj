@@ -46,6 +46,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Controls\ListView\MultiColorSelectionListDataSource.cs" />
+    <Compile Include="Controls\ListView\MultiColorSelectionListView.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -54,9 +58,22 @@
     </Compile>
     <Compile Include="Palette\IO\PaletteFileDefinition.cs" />
     <Compile Include="Palette\IO\PaletteJsonDefinition.cs" />
+    <Compile Include="Palette\IO\PalletColors.cs" />
     <Compile Include="Palette\LabColor.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="frmPalletesChoice.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmPalletesChoice.Designer.cs">
+      <DependentUpon>frmPalletesChoice.cs</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="frmPalletesChoice.resx">
+      <DependentUpon>frmPalletesChoice.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainForm.resx">
+      <DependentUpon>MainForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

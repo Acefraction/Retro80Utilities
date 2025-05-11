@@ -28,13 +28,33 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
+            this.btnPalleteChoice = new System.Windows.Forms.Button();
+            this.SuspendLayout();
+            // 
+            // btnSampleForm
+            // 
+            this.btnPalleteChoice.Location = new System.Drawing.Point(1199, 593);
+            this.btnPalleteChoice.Name = "btnSampleForm";
+            this.btnPalleteChoice.Size = new System.Drawing.Size(109, 23);
+            this.btnPalleteChoice.TabIndex = 0;
+            this.btnPalleteChoice.Text = "サンプルフォーム";
+            this.btnPalleteChoice.UseVisualStyleBackColor = true;
+            // 
+            // MainForm
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(1320, 628);
+            this.Controls.Add(this.btnPalleteChoice);
+            this.Name = "MainForm";
             this.Text = "Form1";
+            this.ResumeLayout(false);
+
         }
 
         #endregion
+
+        private System.Windows.Forms.Button btnPalleteChoice;
     }
 }
 
