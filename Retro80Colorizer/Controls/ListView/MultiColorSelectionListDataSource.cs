@@ -1,13 +1,22 @@
-﻿using System;
+﻿// @language-version: 7.3
+// @framework: .NET Framework 4.8
+// @target: Windows Forms
+// @dependencies: Newtonsoft.Json
+// @color-order: RGB
+// @bitwise-color: RGB-aligned only
+// @constraints:
+/// Do NOT use C# 8.0+ features (e.g., records, switch expressions, pattern matching).
+/// All color operations must use RGB order.
+/// Bitwise color formats must preserve RGB structure unless explicitly required.
+/// Avoid BRG, BGR, or platform-specific layouts unless documented.
+
+
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
 
-// Project: Retro80Colorizer
-// Target Language Version: C# 7.3
-// Platform: .NET Framework 4.8
-// Note: Do not use features introduced after C# 7.3 (e.g., records, switch expressions, etc.)
 namespace Retro80Colorizer.Controls.ListView
 {
     /// <summary>

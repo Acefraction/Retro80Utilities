@@ -1,11 +1,15 @@
-﻿// Project: Retro80Colorizer
-// Target Language Version: C# 7.3
-// Platform: .NET Framework 4.8
-// Note: Do not use features introduced after C# 7.3 (e.g., records, switch expressions, etc.)
-// This project uses RGB order for all color array indexing and conversions.
-// Any bitwise color definitions should also respect the RGB convention, unless otherwise noted.
-// Do NOT use BRG, BGR, or machine-specific orders unless explicitly required.
-using System;
+﻿// @language-version: 7.3
+// @framework: .NET Framework 4.8
+// @target: Windows Forms
+// @dependencies: Newtonsoft.Json
+// @color-order: RGB
+// @bitwise-color: RGB-aligned only
+// @constraints:
+/// Do NOT use C# 8.0+ features (e.g., records, switch expressions, pattern matching).
+/// All color operations must use RGB order.
+/// Bitwise color formats must preserve RGB structure unless explicitly required.
+/// Avoid BRG, BGR, or platform-specific layouts unless documented.
+
 using System.Drawing;
 
 namespace Retro80Colorizer.Palette.IO

@@ -26,7 +26,7 @@
   {
     "filename": "Pallete_BackGrounds.png",
     "category": "背景パレット",
-    "name": "Environment-themed palette rows, sorted by scene",
+    "description": "Environment-themed palette rows, sorted by scene",
     "names": [
       "現代の都市街並み（昼（デフォルト））",
       "下町商店街（昼（デフォルト））",

@@ -9,14 +9,23 @@ using System.Text;
 // Note: Do not use features introduced after C# 7.3 (e.g., records, switch expressions, etc.)
 namespace Retro80Utilities.Palette.IO
 {
-    internal class PaletteDefinition
+    public class PaletteJsonDefinition
     {
-        public class PaletteJsonDefinition
-        {
-            public string filename { get; set; }
-            public string category { get; set; }
-            public string name { get; set; }
-            public List<string> rows { get; set; }
-        }
+        /// <summary>
+        /// パレットのワークフローカテゴリー
+        /// </summary>
+        public string category { get; set; }
+        /// <summary>
+        /// パレットファイル名（PNG形式）
+        /// </summary>
+        public string filename { get; set; }
+        /// <summary>
+        /// パレットファイルの説明（人間への説明用、処理には使わない）
+        /// </summary>
+        public string description { get; set; }
+        /// <summary>
+        /// パレットファイルにパレットの一覧（ＰＮＧファイル内で行方向に並んでいる）
+        /// </summary>
+        public List<string> names { get; set; }
     }
 }
