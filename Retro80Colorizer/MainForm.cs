@@ -35,6 +35,7 @@ namespace Retro80Utilities
     using Retro80Colorizer.ColorReducer.SimpleLChDistanceReducer;
 
     using static Emgu.CV.BitmapExtension;
+    using Retro80Utilities.Palette;
 
     /// <summary>
     /// MainFormはRetro80減色ユーティリティのエントリポイントUIです。
@@ -200,6 +201,52 @@ namespace Retro80Utilities
                                 var dithered = SimpleLChDistanceReducer2.RenderDitheredImage(highResLabelMap, ditherTiles);
                                 dithered.Save(ditherPath);
 
+
+                                // ２ｘ２の組織化ディザ画像を人間の編集用に明るいドットと暗いドットに分離する
+                                {
+                                    Bitmap darkBase = new Bitmap(dithered.Width, dithered.Height);
+                                    Bitmap lightOverlay = new Bitmap(dithered.Width, dithered.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                                    Bitmap labelMap = new Bitmap(Path.Combine(baseDir, baseName + "_LabelMap.png"));
+
+                                    for (int y = 0; y < dithered.Height; y++)
+                                    {
+                                        for (int x = 0; x < dithered.Width; x++)
+                                        {
+                                            Color tilePixel = labelMap.GetPixel(x, y);
+                                            Color ditheredPixel = dithered.GetPixel(x, y);
+                                            if (LChColor.FromColor(tilePixel).L < LChColor.FromColor(ditheredPixel).L)
+                                            {
+                                                darkBase.SetPixel(x, y, tilePixel);
+                                            }
+                                            else
+                                            {
+                                                darkBase.SetPixel(x, y, ditheredPixel);
+                                            }
+                                        }
+                                    }
+
+                                    for (int y = 0; y < dithered.Height; y++)
+                                    {
+                                        for (int x = 0; x < dithered.Width; x++)
+                                        {
+                                            if ((x + y) % 2 == 1)
+                                            {
+                                                Color pixel = dithered.GetPixel(x, y);
+                                                lightOverlay.SetPixel(x, y, Color.FromArgb(255, pixel));
+                                            }
+                                            else
+                                            {
+                                                lightOverlay.SetPixel(x, y, Color.Transparent);
+                                            }
+                                        }
+                                    }
+
+                                    string darkBasePath = Path.Combine(baseDir, baseName + "_Dither_DarkBase.png");
+                                    darkBase.Save(darkBasePath);
+                                    string lightOverlayPath = Path.Combine(baseDir, baseName + "_Dither_LightOverlay.png");
+                                    lightOverlay.Save(lightOverlayPath);
+                                }
+
                                 MessageBox.Show("LCh減色＋ディザ展開が完了しました！", "完了", MessageBoxButtons.OK, MessageBoxIcon.Information);
                             }
                             else
@@ -294,9 +341,7 @@ namespace Retro80Utilities
                 //expansionSize = 0：ほぼ線のピクセルのみ補完（最小）
                 // 1〜2：おすすめの自然補完範囲
                 // 3以上：塗りがボケすぎる可能性あるから要チェック！
-                RemoveLinesWithInpaint(inputPath, tempMaskPath, outputNoLinePath, expansionSize:1);
-
-
+                RemoveLinesWithInpaint(inputPath, tempMaskPath, outputNoLinePath, expansionSize:0);
 
                 // 一時ファイル削除
                 if (File.Exists(tempMaskPath)) File.Delete(tempMaskPath);

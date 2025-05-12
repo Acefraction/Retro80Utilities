@@ -130,7 +130,7 @@
             this.txtClusterDistance.Name = "txtClusterDistance";
             this.txtClusterDistance.Size = new System.Drawing.Size(100, 19);
             this.txtClusterDistance.TabIndex = 9;
-            this.txtClusterDistance.Text = "14";
+            this.txtClusterDistance.Text = "18";
             // 
             // label4
             // 
@@ -172,7 +172,7 @@
             this.txtMinColorDistanceInPalette.Name = "txtMinColorDistanceInPalette";
             this.txtMinColorDistanceInPalette.Size = new System.Drawing.Size(100, 19);
             this.txtMinColorDistanceInPalette.TabIndex = 14;
-            this.txtMinColorDistanceInPalette.Text = "5";
+            this.txtMinColorDistanceInPalette.Text = "3";
             // 
             // txtDitherPaletteSize
             // 

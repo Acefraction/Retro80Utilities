@@ -118,6 +118,20 @@ namespace Retro80Colorizer.ColorReducer.SimpleLChDistanceReducer
                 Color baseColor = clusterColors[id];
                 Color altColor = baseColor;
 
+                // swap: base は常に「暗い色」にする 
+                {
+                    // baseColor, altColor の決定後
+                    var lchBase = LChColor.FromColor(baseColor);
+                    var lchAlt = LChColor.FromColor(altColor);
+
+                    if (lchAlt.L < lchBase.L)
+                    {
+                        var tmp = baseColor;
+                        baseColor = altColor;
+                        altColor = tmp;
+                    }
+                }
+
                 if (uniqueColors.Count > 1)
                 {
                     LChColor baseLch = LChColor.FromColor(baseColor);
