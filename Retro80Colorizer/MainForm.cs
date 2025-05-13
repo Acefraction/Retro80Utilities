@@ -206,41 +206,42 @@ namespace Retro80Utilities
                                 {
                                     Bitmap darkBase = new Bitmap(dithered.Width, dithered.Height);
                                     Bitmap lightOverlay = new Bitmap(dithered.Width, dithered.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-                                    Bitmap labelMap = new Bitmap(Path.Combine(baseDir, baseName + "_LabelMap.png"));
-
-                                    for (int y = 0; y < dithered.Height; y++)
+                                    using (Bitmap labelMap = new Bitmap(Path.Combine(baseDir, baseName + "_LabelMap.png")))
                                     {
-                                        for (int x = 0; x < dithered.Width; x++)
+                                        for (int y = 0; y < dithered.Height; y++)
                                         {
-                                            Color tilePixel = labelMap.GetPixel(x, y);
-                                            Color ditheredPixel = dithered.GetPixel(x, y);
-                                            if (LChColor.FromColor(tilePixel).L < LChColor.FromColor(ditheredPixel).L)
+                                            for (int x = 0; x < dithered.Width; x++)
                                             {
-                                                darkBase.SetPixel(x, y, tilePixel);
-                                            }
-                                            else
-                                            {
-                                                darkBase.SetPixel(x, y, ditheredPixel);
+                                                Color tilePixel = labelMap.GetPixel(x, y);
+                                                Color ditheredPixel = dithered.GetPixel(x, y);
+                                                if (LChColor.FromColor(tilePixel).L < LChColor.FromColor(ditheredPixel).L)
+                                                {
+                                                    darkBase.SetPixel(x, y, tilePixel);
+                                                }
+                                                else
+                                                {
+                                                    darkBase.SetPixel(x, y, ditheredPixel);
+                                                }
                                             }
                                         }
-                                    }
 
-                                    for (int y = 0; y < dithered.Height; y++)
-                                    {
-                                        for (int x = 0; x < dithered.Width; x++)
+                                        for (int y = 0; y < dithered.Height; y++)
                                         {
-                                            if ((x + y) % 2 == 1)
+                                            for (int x = 0; x < dithered.Width; x++)
                                             {
-                                                Color pixel = dithered.GetPixel(x, y);
-                                                lightOverlay.SetPixel(x, y, Color.FromArgb(255, pixel));
-                                            }
-                                            else
-                                            {
-                                                lightOverlay.SetPixel(x, y, Color.Transparent);
+                                                if ((x + y) % 2 == 1)
+                                                {
+                                                    Color pixel = dithered.GetPixel(x, y);
+                                                    lightOverlay.SetPixel(x, y, Color.FromArgb(255, pixel));
+                                                }
+                                                else
+                                                {
+                                                    lightOverlay.SetPixel(x, y, Color.Transparent);
+                                                }
                                             }
                                         }
-                                    }
 
+                                    }
                                     string darkBasePath = Path.Combine(baseDir, baseName + "_Dither_DarkBase.png");
                                     darkBase.Save(darkBasePath);
                                     string lightOverlayPath = Path.Combine(baseDir, baseName + "_Dither_LightOverlay.png");
